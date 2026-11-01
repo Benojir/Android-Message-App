@@ -17,7 +17,7 @@
     <string name="action_settings">Settings</string>
     <string name="action_about">About</string>
     <string name="search_hint">Search conversations</string>
-    <string name="search_placeholder_notice">Search functionality will be active in Step 2.</string>
+    <string name="search_placeholder_notice">Search functionality will be active in Step 3.</string>
 
     <!-- Inbox Empty State -->
     <string name="empty_inbox_title">No conversations yet</string>
@@ -45,7 +45,31 @@
     <string name="category_badge_phase4">Phase 4</string>
     <string name="category_click_toast">%1$s category filtering will be enabled in Phase 3.</string>
 
-    <!-- Settings Screen -->
+    <!-- Settings: Default Messaging App Section -->
+    <string name="settings_section_default_app">Default Messaging App</string>
+    <string name="default_sms_state1_title">Set as Default SMS App</string>
+    <string name="default_sms_state1_desc">Make NextGen Messages your default messaging application to manage SMS and MMS.</string>
+    <string name="default_sms_action_set_default">Set as Default</string>
+
+    <string name="default_sms_state2_title">NextGen Messages is your default SMS app</string>
+    <string name="default_sms_state2_desc">Your device is configured to use NextGen Messages for SMS messaging.</string>
+    <string name="default_sms_status_active">Default App Active</string>
+
+    <string name="default_sms_state3_title">Default SMS Role Unavailable</string>
+    <string name="default_sms_state3_desc">This device does not support assigning the SMS role to this application.</string>
+    <string name="default_sms_action_unavailable">Role Unavailable</string>
+
+    <string name="default_sms_state4_title">SMS Permissions Required</string>
+    <string name="default_sms_state4_desc">Required SMS permissions are missing. Please grant the requested permissions to enable message access.</string>
+    <string name="default_sms_action_grant">Grant Permissions</string>
+
+    <!-- Role Request Feedback -->
+    <string name="role_request_success">NextGen Messages is now your default SMS app.</string>
+    <string name="role_request_declined">Default SMS role request was declined or cancelled.</string>
+    <string name="role_request_unavailable">Default SMS role is not available on this device.</string>
+    <string name="role_request_already_default">NextGen Messages is already your default SMS app.</string>
+
+    <!-- Settings Screen: Appearance & General -->
     <string name="settings_title">Settings</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_theme_title">Theme</string>
@@ -61,13 +85,12 @@
     <string name="settings_about_title">About NextGen Messages</string>
     <string name="settings_about_summary">Modern, privacy-centric SMS/MMS client</string>
     <string name="settings_version_title">App Version</string>
-    <string name="settings_version_value">1.0.0 (Step 1 — Foundation)</string>
+    <string name="settings_version_value">1.1.0 (Step 2 — Default SMS Integration)</string>
     <string name="settings_architecture_title">Architecture</string>
-    <string name="settings_architecture_value">Native Java • MVVM • Material Design 3</string>
+    <string name="settings_architecture_value">Native Java • MVVM • Material Design 3 • RoleManager</string>
 
+    <!-- Settings: Upcoming Roadmap -->
     <string name="settings_section_future">Upcoming Capabilities</string>
-    <string name="settings_default_sms_title">Default SMS Application</string>
-    <string name="settings_default_sms_summary">Set as primary device messaging handler</string>
     <string name="settings_notifications_title">Notifications &amp; Alerts</string>
     <string name="settings_notifications_summary">Channels, quiet hours, and quick reply</string>
     <string name="settings_privacy_title">Privacy Vault</string>
@@ -75,6 +98,7 @@
     <string name="settings_backup_title">Local Backup &amp; Restore</string>
     <string name="settings_backup_summary">Export and import encrypted message archives</string>
     <string name="badge_phase2">Phase 2</string>
+    <string name="badge_phase3">Phase 3</string>
     <string name="badge_phase4">Phase 4</string>
     <string name="badge_phase5">Phase 5</string>
     <string name="future_feature_dialog_title">Scheduled Feature</string>
@@ -82,13 +106,25 @@
 
     <!-- About Dialog -->
     <string name="about_dialog_title">NextGen Messages</string>
-    <string name="about_dialog_content">NextGen Messages is a modern, high-performance, and privacy-focused native Android SMS/MMS application.\n\n• Zero tracking or analytics\n• 100% offline functionality\n• Material Design 3 &amp; Material You\n• Built purely with Native Java &amp; XML</string>
+    <string name="about_dialog_content">NextGen Messages is a modern, high-performance, and privacy-focused native Android SMS/MMS application.\n\n• Zero tracking or analytics\n• 100% offline functionality\n• Official Android RoleManager default SMS integration\n• Material Design 3 &amp; Material You\n• Built purely with Native Java &amp; XML</string>
     <string name="dialog_button_ok">OK</string>
     <string name="dialog_button_cancel">Cancel</string>
 
+    <!-- Compose Activity (SENDTO Handler) -->
+    <string name="compose_title">New Conversation</string>
+    <string name="compose_subtitle">Compose Message</string>
+    <string name="compose_recipient_hint">To</string>
+    <string name="compose_recipient_helper">Enter phone number or contact</string>
+    <string name="compose_message_hint">Text message</string>
+    <string name="compose_action_send">Send</string>
+    <string name="compose_step2_banner_title">Step 2: Default SMS Integration</string>
+    <string name="compose_step2_banner_desc">This screen handles external SMS/MMS compose requests (ACTION_SENDTO). Message sending will be activated in Step 4. No messages are sent automatically in this phase.</string>
+    <string name="compose_send_disabled_notice">Message transmission is scheduled for Step 4. Real SMS sending is intentionally disabled for safety.</string>
+    <string name="compose_missing_recipient_warning">Please enter a recipient phone number.</string>
+
     <!-- Compose Placeholder Sheet / Dialog -->
     <string name="compose_placeholder_title">New Conversation</string>
-    <string name="compose_placeholder_subtitle">Phase 2 Implementation</string>
-    <string name="compose_placeholder_description">Direct SMS/MMS messaging, contact picker, and conversation threads will be implemented in Step 2.\n\nPer project guidelines, no SMS permissions are requested in this foundation phase.</string>
-    <string name="compose_placeholder_button">Got it</string>
+    <string name="compose_placeholder_subtitle">Step 2 Default SMS Integration</string>
+    <string name="compose_placeholder_description">Default SMS role integration and ACTION_SENDTO compose support are now active. Direct SMS/MMS transmission and conversation storage will be completed in Step 4.\n\nTap below to open the Compose screen.</string>
+    <string name="compose_placeholder_button">Open Compose Screen</string>
 </resources>

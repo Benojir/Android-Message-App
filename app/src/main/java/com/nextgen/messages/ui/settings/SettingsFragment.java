@@ -1,10 +1,12 @@
 package com.nextgen.messages.ui.settings;
 
-import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -17,19 +19,51 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.nextgen.messages.R;
 import com.nextgen.messages.databinding.FragmentSettingsBinding;
+import com.nextgen.messages.telephony.SmsPermissionManager;
+import com.nextgen.messages.telephony.SmsRoleManager;
 import com.nextgen.messages.utils.ThemeHelper;
 
 /**
- * SettingsFragment providing theme management, dynamic colors toggle,
- * application information, and clearly marked roadmap placeholders.
+ * SettingsFragment providing default SMS app management, theme preferences,
+ * dynamic colors toggle, application information, and phased feature roadmap.
  */
 public class SettingsFragment extends Fragment {
 
     private FragmentSettingsBinding binding;
     private SettingsViewModel viewModel;
 
+    private ActivityResultLauncher<Intent> roleRequestLauncher;
+    private ActivityResultLauncher<String[]> permissionRequestLauncher;
+
     public static SettingsFragment newInstance() {
         return new SettingsFragment();
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        // Register ActivityResultLauncher for RoleManager.createRequestRoleIntent()
+        roleRequestLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    // Per requirements: Do not rely exclusively on ActivityResult result codes.
+                    // Always verify actual role state directly from RoleManager / Telephony.
+                    viewModel.refreshRoleStatus();
+                    boolean isDefault = viewModel.getSmsRoleManager().isDefaultSmsApp();
+                    if (isDefault) {
+                        Snackbar.make(binding.getRoot(), R.string.role_request_success, Snackbar.LENGTH_LONG).show();
+                    } else {
+                        Snackbar.make(binding.getRoot(), R.string.role_request_declined, Snackbar.LENGTH_LONG).show();
+                    }
+                }
+        );
+
+        // Register ActivityResultLauncher for runtime permissions
+        permissionRequestLauncher = registerForActivityResult(
+                new ActivityResultContracts.RequestMultiplePermissions(),
+                results -> viewModel.refreshRoleStatus()
+        );
     }
 
     @Nullable
@@ -50,10 +84,18 @@ public class SettingsFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(SettingsViewModel.class);
 
         setupWindowInsets();
+        setupDefaultSmsSection();
         setupAppearanceSection();
         setupGeneralSection();
         setupFutureSection();
         observeViewModel();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Detect if user changed default SMS app outside the app in Android Settings
+        viewModel.refreshRoleStatus();
     }
 
     private void setupWindowInsets() {
@@ -62,6 +104,40 @@ public class SettingsFragment extends Fragment {
             v.setPadding(0, insets.top, 0, 0);
             return windowInsets;
         });
+    }
+
+    private void setupDefaultSmsSection() {
+        binding.btnSetDefaultSms.setOnClickListener(v -> handleDefaultSmsAction());
+    }
+
+    private void handleDefaultSmsAction() {
+        SmsRoleManager roleManager = viewModel.getSmsRoleManager();
+        SmsRoleManager.RoleStatus status = roleManager.getRoleStatus();
+
+        if (status == SmsRoleManager.RoleStatus.IS_DEFAULT) {
+            Snackbar.make(binding.getRoot(), R.string.role_request_already_default, Snackbar.LENGTH_SHORT).show();
+        } else if (status == SmsRoleManager.RoleStatus.PERMISSIONS_REQUIRED) {
+            SmsPermissionManager permissionManager = new SmsPermissionManager(requireContext());
+            String[] missingPermissions = permissionManager.getMissingSmsPermissions();
+            if (missingPermissions.length > 0) {
+                permissionRequestLauncher.launch(missingPermissions);
+            }
+        } else if (status == SmsRoleManager.RoleStatus.ROLE_UNAVAILABLE) {
+            Snackbar.make(binding.getRoot(), R.string.role_request_unavailable, Snackbar.LENGTH_LONG).show();
+        } else {
+            // NOT_DEFAULT -> Request the official role
+            Intent roleIntent = roleManager.createRequestRoleIntent();
+            if (roleIntent != null) {
+                try {
+                    roleRequestLauncher.launch(roleIntent);
+                } catch (Exception e) {
+                    // Fallback to opening system settings
+                    startActivity(roleManager.createDefaultAppsSettingsIntent());
+                }
+            } else {
+                Snackbar.make(binding.getRoot(), R.string.role_request_unavailable, Snackbar.LENGTH_LONG).show();
+            }
+        }
     }
 
     private void setupAppearanceSection() {
@@ -119,21 +195,14 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupGeneralSection() {
-        binding.rowAbout.setOnClickListener(v -> {
-            new MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(R.string.about_dialog_title)
-                    .setMessage(R.string.about_dialog_content)
-                    .setPositiveButton(R.string.dialog_button_ok, null)
-                    .show();
-        });
+        binding.rowAbout.setOnClickListener(v -> new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.about_dialog_title)
+                .setMessage(R.string.about_dialog_content)
+                .setPositiveButton(R.string.dialog_button_ok, null)
+                .show());
     }
 
     private void setupFutureSection() {
-        binding.rowFutureDefaultSms.setOnClickListener(v -> showFutureFeatureDialog(
-                getString(R.string.settings_default_sms_title),
-                getString(R.string.badge_phase2)
-        ));
-
         binding.rowFutureNotifications.setOnClickListener(v -> showFutureFeatureDialog(
                 getString(R.string.settings_notifications_title),
                 getString(R.string.badge_phase4)
@@ -160,6 +229,8 @@ public class SettingsFragment extends Fragment {
     }
 
     private void observeViewModel() {
+        viewModel.getRoleStatus().observe(getViewLifecycleOwner(), this::updateDefaultSmsUI);
+
         viewModel.getThemeMode().observe(getViewLifecycleOwner(), mode -> {
             binding.tvThemeSummary.setText(ThemeHelper.getThemeName(requireContext(), mode));
         });
@@ -167,6 +238,48 @@ public class SettingsFragment extends Fragment {
         viewModel.getDynamicColorsEnabled().observe(getViewLifecycleOwner(), enabled -> {
             binding.switchDynamicColors.setChecked(enabled != null && enabled);
         });
+    }
+
+    private void updateDefaultSmsUI(@NonNull SmsRoleManager.RoleStatus status) {
+        switch (status) {
+            case IS_DEFAULT:
+                binding.tvDefaultSmsTitle.setText(R.string.default_sms_state2_title);
+                binding.tvDefaultSmsDesc.setText(R.string.default_sms_state2_desc);
+                binding.btnSetDefaultSms.setVisibility(View.GONE);
+                binding.layoutDefaultSmsActiveBadge.setVisibility(View.VISIBLE);
+                binding.ivDefaultSmsStatus.setImageResource(R.drawable.ic_verified);
+                break;
+
+            case NOT_DEFAULT:
+                binding.tvDefaultSmsTitle.setText(R.string.default_sms_state1_title);
+                binding.tvDefaultSmsDesc.setText(R.string.default_sms_state1_desc);
+                binding.btnSetDefaultSms.setVisibility(View.VISIBLE);
+                binding.btnSetDefaultSms.setEnabled(true);
+                binding.btnSetDefaultSms.setText(R.string.default_sms_action_set_default);
+                binding.layoutDefaultSmsActiveBadge.setVisibility(View.GONE);
+                binding.ivDefaultSmsStatus.setImageResource(R.drawable.ic_sms);
+                break;
+
+            case ROLE_UNAVAILABLE:
+                binding.tvDefaultSmsTitle.setText(R.string.default_sms_state3_title);
+                binding.tvDefaultSmsDesc.setText(R.string.default_sms_state3_desc);
+                binding.btnSetDefaultSms.setVisibility(View.VISIBLE);
+                binding.btnSetDefaultSms.setEnabled(false);
+                binding.btnSetDefaultSms.setText(R.string.default_sms_action_unavailable);
+                binding.layoutDefaultSmsActiveBadge.setVisibility(View.GONE);
+                binding.ivDefaultSmsStatus.setImageResource(R.drawable.ic_info);
+                break;
+
+            case PERMISSIONS_REQUIRED:
+                binding.tvDefaultSmsTitle.setText(R.string.default_sms_state4_title);
+                binding.tvDefaultSmsDesc.setText(R.string.default_sms_state4_desc);
+                binding.btnSetDefaultSms.setVisibility(View.VISIBLE);
+                binding.btnSetDefaultSms.setEnabled(true);
+                binding.btnSetDefaultSms.setText(R.string.default_sms_action_grant);
+                binding.layoutDefaultSmsActiveBadge.setVisibility(View.GONE);
+                binding.ivDefaultSmsStatus.setImageResource(R.drawable.ic_shield);
+                break;
+        }
     }
 
     @Override
