@@ -121,7 +121,9 @@ public class SmsMessage {
     public boolean isOutgoing() {
         return type == Telephony.Sms.MESSAGE_TYPE_SENT
                 || type == Telephony.Sms.MESSAGE_TYPE_OUTBOX
-                || type == Telephony.Sms.MESSAGE_TYPE_QUEUED;
+                || type == Telephony.Sms.MESSAGE_TYPE_QUEUED
+                || type == Telephony.Sms.MESSAGE_TYPE_FAILED
+                || type == Telephony.Sms.MESSAGE_TYPE_DRAFT;
     }
 
     public boolean isDraft() {

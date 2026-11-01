@@ -62,6 +62,16 @@ public class SmsModelAndGroupingTest {
         assertTrue(sent.isOutgoing());
         assertFalse(sent.isIncoming());
         assertTrue(sent.isRead());
+
+        SmsMessage failed = new SmsMessage(
+                103L, 1L, "+1234567890", "Failed message",
+                1010L, 1010L, Telephony.Sms.MESSAGE_TYPE_FAILED,
+                true, true, Telephony.Sms.STATUS_FAILED, 1, 1
+        );
+        assertTrue(failed.isOutgoing());
+        assertFalse(failed.isIncoming());
+        assertTrue(failed.isFailed());
+        assertEquals("Failed • Tap to retry", failed.getDeliveryStatusLabel());
     }
 
     @Test
@@ -87,5 +97,14 @@ public class SmsModelAndGroupingTest {
         MessageListItem.MessageItem messageItem = new MessageListItem.MessageItem(msg);
         assertEquals(MessageListItem.TYPE_MESSAGE_INCOMING, messageItem.getItemType());
         assertEquals(201L, messageItem.getItemId());
+
+        SmsMessage failedMsg = new SmsMessage(
+                202L, 5L, "+1234567890", "Failed bubble",
+                1010L, 1010L, Telephony.Sms.MESSAGE_TYPE_FAILED,
+                true, true, Telephony.Sms.STATUS_FAILED, 1, 1
+        );
+        MessageListItem.MessageItem failedItem = new MessageListItem.MessageItem(failedMsg);
+        assertEquals(MessageListItem.TYPE_MESSAGE_OUTGOING, failedItem.getItemType());
+        assertEquals(202L, failedItem.getItemId());
     }
 }

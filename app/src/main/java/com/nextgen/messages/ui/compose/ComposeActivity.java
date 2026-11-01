@@ -216,43 +216,48 @@ public class ComposeActivity extends AppCompatActivity {
         updateSendButtonState();
 
         binding.btnSend.setOnClickListener(v -> {
-            if (!roleManager.isDefaultSmsApp()) {
-                roleManager.requestDefaultSmsRole(roleRequestLauncher);
-                return;
-            }
-
-            String recipient = binding.etRecipient.getText() != null ? binding.etRecipient.getText().toString().trim() : "";
-            if (TextUtils.isEmpty(recipient)) {
-                binding.tilRecipient.setError(getString(R.string.compose_missing_recipient_warning));
-                return;
-            }
-            binding.tilRecipient.setError(null);
-
-            String messageBody = binding.etMessage.getText() != null ? binding.etMessage.getText().toString().trim() : "";
-            if (TextUtils.isEmpty(messageBody)) {
-                return;
-            }
-
-            int subId = (selectedSim != null) ? selectedSim.getSubscriptionId() : -1;
-
-            long threadId = storageManager.getOrCreateThreadId(recipient);
-
-            smsSender.sendMessage(threadId, recipient, messageBody, subId, new SmsSender.SendCallback() {
-                @Override
-                public void onMessageQueued(@NonNull Uri messageUri) {
-                    // Open conversation history screen
-                    Intent convIntent = new Intent(ComposeActivity.this, ConversationActivity.class);
-                    convIntent.putExtra(ConversationActivity.EXTRA_THREAD_ID, threadId);
-                    convIntent.putExtra(ConversationActivity.EXTRA_ADDRESS, recipient);
-                    startActivity(convIntent);
-                    finish();
+            try {
+                if (!roleManager.isDefaultSmsApp()) {
+                    roleManager.requestDefaultSmsRole(roleRequestLauncher);
+                    return;
                 }
 
-                @Override
-                public void onError(@NonNull String errorMessage) {
-                    Toast.makeText(ComposeActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                String recipient = binding.etRecipient.getText() != null ? binding.etRecipient.getText().toString().trim() : "";
+                if (TextUtils.isEmpty(recipient)) {
+                    binding.tilRecipient.setError(getString(R.string.compose_missing_recipient_warning));
+                    return;
                 }
-            });
+                binding.tilRecipient.setError(null);
+
+                String messageBody = binding.etMessage.getText() != null ? binding.etMessage.getText().toString().trim() : "";
+                if (TextUtils.isEmpty(messageBody)) {
+                    return;
+                }
+
+                int subId = (selectedSim != null) ? selectedSim.getSubscriptionId() : -1;
+
+                long threadId = storageManager.getOrCreateThreadId(recipient);
+
+                smsSender.sendMessage(threadId, recipient, messageBody, subId, new SmsSender.SendCallback() {
+                    @Override
+                    public void onMessageQueued(@NonNull Uri messageUri) {
+                        // Open conversation history screen
+                        Intent convIntent = new Intent(ComposeActivity.this, ConversationActivity.class);
+                        convIntent.putExtra(ConversationActivity.EXTRA_THREAD_ID, threadId);
+                        convIntent.putExtra(ConversationActivity.EXTRA_ADDRESS, recipient);
+                        startActivity(convIntent);
+                        finish();
+                    }
+
+                    @Override
+                    public void onError(@NonNull String errorMessage) {
+                        Toast.makeText(ComposeActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                    }
+                });
+            } catch (Throwable t) {
+                android.util.Log.e("ComposeActivity", "Error on send click", t);
+                Toast.makeText(ComposeActivity.this, "Failed to send: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
 
         binding.btnSetDefaultRole.setOnClickListener(v -> {

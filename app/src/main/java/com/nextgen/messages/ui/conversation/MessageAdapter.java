@@ -138,7 +138,7 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
                         }
                     });
                 } else {
-                    binding.tvMessageStatus.setTextColor(Color.parseColor("#444444"));
+                    binding.tvMessageStatus.setTextColor(binding.tvMessageTime.getTextColors());
                     binding.bubbleContainer.setOnClickListener(null);
                 }
             } else {

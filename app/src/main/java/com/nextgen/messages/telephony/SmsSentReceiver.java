@@ -35,45 +35,49 @@ public class SmsSentReceiver extends BroadcastReceiver {
             return;
         }
 
-        String action = intent.getAction();
-        if (!ACTION_SMS_SENT.equals(action)) {
-            return;
-        }
-
-        String uriString = intent.getStringExtra(EXTRA_MESSAGE_URI);
-        if (uriString == null || uriString.isEmpty()) {
-            Log.w(TAG, "SMS_SENT received with missing EXTRA_MESSAGE_URI");
-            return;
-        }
-
-        Uri messageUri = Uri.parse(uriString);
-        int partIndex = intent.getIntExtra(EXTRA_PART_INDEX, 0);
-        int totalParts = intent.getIntExtra(EXTRA_TOTAL_PARTS, 1);
-        int resultCode = getResultCode();
-
-        Log.d(TAG, "SMS_SENT callback for part " + (partIndex + 1) + "/" + totalParts + ", resultCode=" + resultCode + ", uri=" + uriString);
-
-        SmsStorageManager storageManager = SmsStorageManager.getInstance(context);
-
-        if (resultCode == Activity.RESULT_OK) {
-            if (totalParts <= 1) {
-                // Single part message sent successfully
-                storageManager.updateMessageStatus(messageUri, Telephony.Sms.MESSAGE_TYPE_SENT, Telephony.Sms.STATUS_NONE, 0);
-            } else {
-                // Multipart message: increment success count
-                AtomicInteger successfulParts = MULTIPART_SUCCESS_TRACKER.computeIfAbsent(uriString, k -> new AtomicInteger(0));
-                int currentSuccess = successfulParts.incrementAndGet();
-                if (currentSuccess >= totalParts) {
-                    MULTIPART_SUCCESS_TRACKER.remove(uriString);
-                    storageManager.updateMessageStatus(messageUri, Telephony.Sms.MESSAGE_TYPE_SENT, Telephony.Sms.STATUS_NONE, 0);
-                    Log.i(TAG, "All " + totalParts + " parts sent successfully for " + uriString);
-                }
+        try {
+            String action = intent.getAction();
+            if (!ACTION_SMS_SENT.equals(action)) {
+                return;
             }
-        } else {
-            // Any part failure marks the message as failed
-            MULTIPART_SUCCESS_TRACKER.remove(uriString);
-            storageManager.updateMessageStatus(messageUri, Telephony.Sms.MESSAGE_TYPE_FAILED, Telephony.Sms.STATUS_FAILED, resultCode);
-            Log.e(TAG, "SMS send failed for " + uriString + " with error code: " + getErrorMessage(resultCode));
+
+            String uriString = intent.getStringExtra(EXTRA_MESSAGE_URI);
+            if (uriString == null || uriString.isEmpty()) {
+                Log.w(TAG, "SMS_SENT received with missing EXTRA_MESSAGE_URI");
+                return;
+            }
+
+            Uri messageUri = Uri.parse(uriString);
+            int partIndex = intent.getIntExtra(EXTRA_PART_INDEX, 0);
+            int totalParts = intent.getIntExtra(EXTRA_TOTAL_PARTS, 1);
+            int resultCode = getResultCode();
+
+            Log.d(TAG, "SMS_SENT callback for part " + (partIndex + 1) + "/" + totalParts + ", resultCode=" + resultCode + ", uri=" + uriString);
+
+            SmsStorageManager storageManager = SmsStorageManager.getInstance(context);
+
+            if (resultCode == Activity.RESULT_OK) {
+                if (totalParts <= 1) {
+                    // Single part message sent successfully
+                    storageManager.updateMessageStatus(messageUri, Telephony.Sms.MESSAGE_TYPE_SENT, Telephony.Sms.STATUS_NONE, 0);
+                } else {
+                    // Multipart message: increment success count
+                    AtomicInteger successfulParts = MULTIPART_SUCCESS_TRACKER.computeIfAbsent(uriString, k -> new AtomicInteger(0));
+                    int currentSuccess = successfulParts.incrementAndGet();
+                    if (currentSuccess >= totalParts) {
+                        MULTIPART_SUCCESS_TRACKER.remove(uriString);
+                        storageManager.updateMessageStatus(messageUri, Telephony.Sms.MESSAGE_TYPE_SENT, Telephony.Sms.STATUS_NONE, 0);
+                        Log.i(TAG, "All " + totalParts + " parts sent successfully for " + uriString);
+                    }
+                }
+            } else {
+                // Any part failure marks the message as failed
+                MULTIPART_SUCCESS_TRACKER.remove(uriString);
+                storageManager.updateMessageStatus(messageUri, Telephony.Sms.MESSAGE_TYPE_FAILED, Telephony.Sms.STATUS_FAILED, resultCode);
+                Log.e(TAG, "SMS send failed for " + uriString + " with error code: " + getErrorMessage(resultCode));
+            }
+        } catch (Throwable t) {
+            Log.e(TAG, "Error in SmsSentReceiver", t);
         }
     }
 

@@ -34,8 +34,14 @@ public class SmsContentObserver extends ContentObserver {
         this.handler = handler;
         this.listener = listener;
         this.debounceRunnable = () -> {
-            Log.d(TAG, "Debounced SMS change triggered. Notifying listener.");
-            this.listener.onSmsChanged();
+            try {
+                Log.d(TAG, "Debounced SMS change triggered. Notifying listener.");
+                if (this.listener != null) {
+                    this.listener.onSmsChanged();
+                }
+            } catch (Throwable t) {
+                Log.e(TAG, "Error notifying SMS change listener", t);
+            }
         };
     }
 
@@ -45,15 +51,22 @@ public class SmsContentObserver extends ContentObserver {
 
     @Override
     public void onChange(boolean selfChange) {
-        onChange(selfChange, null);
+        dispatchChange(null);
     }
 
     @Override
     public void onChange(boolean selfChange, @Nullable Uri uri) {
-        super.onChange(selfChange, uri);
-        Log.d(TAG, "Telephony.Sms onChange detected: " + uri);
-        handler.removeCallbacks(debounceRunnable);
-        handler.postDelayed(debounceRunnable, DEBOUNCE_DELAY_MS);
+        dispatchChange(uri);
+    }
+
+    private void dispatchChange(@Nullable Uri uri) {
+        try {
+            Log.d(TAG, "Telephony.Sms onChange detected: " + uri);
+            handler.removeCallbacks(debounceRunnable);
+            handler.postDelayed(debounceRunnable, DEBOUNCE_DELAY_MS);
+        } catch (Throwable t) {
+            Log.e(TAG, "Error scheduling SMS change debounce", t);
+        }
     }
 
     /**

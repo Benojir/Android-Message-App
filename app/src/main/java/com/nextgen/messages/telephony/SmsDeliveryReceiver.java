@@ -24,46 +24,50 @@ public class SmsDeliveryReceiver extends BroadcastReceiver {
             return;
         }
 
-        String action = intent.getAction();
-        if (!ACTION_SMS_DELIVERY.equals(action)) {
-            return;
-        }
-
-        String uriString = intent.getStringExtra(EXTRA_MESSAGE_URI);
-        if (uriString == null || uriString.isEmpty()) {
-            Log.w(TAG, "SMS_DELIVERY received with missing EXTRA_MESSAGE_URI");
-            return;
-        }
-
-        Uri messageUri = Uri.parse(uriString);
-        byte[] pdu = intent.getByteArrayExtra("pdu");
-        String format = intent.getStringExtra("format");
-
-        Log.d(TAG, "Received delivery report for " + uriString + " (hasPdu=" + (pdu != null) + ")");
-
-        if (pdu != null) {
-            try {
-                SmsMessage message;
-                if (format != null) {
-                    message = SmsMessage.createFromPdu(pdu, format);
-                } else {
-                    message = SmsMessage.createFromPdu(pdu);
-                }
-
-                if (message != null) {
-                    int status = message.getStatus();
-                    Log.d(TAG, "Delivery report PDU status: " + status);
-                    if (status == 0) { // Standard GSM delivery success code
-                        SmsStorageManager.getInstance(context).markMessageDelivered(messageUri);
-                        return;
-                    }
-                }
-            } catch (Exception e) {
-                Log.w(TAG, "Error parsing delivery PDU: " + e.getMessage());
+        try {
+            String action = intent.getAction();
+            if (!ACTION_SMS_DELIVERY.equals(action)) {
+                return;
             }
-        }
 
-        // Default confirmation
-        SmsStorageManager.getInstance(context).markMessageDelivered(messageUri);
+            String uriString = intent.getStringExtra(EXTRA_MESSAGE_URI);
+            if (uriString == null || uriString.isEmpty()) {
+                Log.w(TAG, "SMS_DELIVERY received with missing EXTRA_MESSAGE_URI");
+                return;
+            }
+
+            Uri messageUri = Uri.parse(uriString);
+            byte[] pdu = intent.getByteArrayExtra("pdu");
+            String format = intent.getStringExtra("format");
+
+            Log.d(TAG, "Received delivery report for " + uriString + " (hasPdu=" + (pdu != null) + ")");
+
+            if (pdu != null) {
+                try {
+                    SmsMessage message;
+                    if (format != null) {
+                        message = SmsMessage.createFromPdu(pdu, format);
+                    } else {
+                        message = SmsMessage.createFromPdu(pdu);
+                    }
+
+                    if (message != null) {
+                        int status = message.getStatus();
+                        Log.d(TAG, "Delivery report PDU status: " + status);
+                        if (status == 0) { // Standard GSM delivery success code
+                            SmsStorageManager.getInstance(context).markMessageDelivered(messageUri);
+                            return;
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.w(TAG, "Error parsing delivery PDU: " + e.getMessage());
+                }
+            }
+
+            // Default confirmation
+            SmsStorageManager.getInstance(context).markMessageDelivered(messageUri);
+        } catch (Throwable t) {
+            Log.e(TAG, "Error in SmsDeliveryReceiver", t);
+        }
     }
 }

@@ -79,6 +79,7 @@ public class ConversationActivity extends AppCompatActivity {
         roleManager = new SmsRoleManager(this);
 
         extractIntentExtras();
+        resolveAddressIfMissing();
         setupWindowInsets();
         setupToolbar();
         setupRecyclerView();
@@ -99,6 +100,35 @@ public class ConversationActivity extends AppCompatActivity {
             threadId = getIntent().getLongExtra(EXTRA_THREAD_ID, -1L);
             address = getIntent().getStringExtra(EXTRA_ADDRESS);
             displayName = getIntent().getStringExtra(EXTRA_DISPLAY_NAME);
+        }
+    }
+
+    private void resolveAddressIfMissing() {
+        if ((address == null || address.trim().isEmpty()) && threadId > 0) {
+            com.nextgen.messages.utils.AppExecutors.getInstance().diskIO().execute(() -> {
+                String[] projection = new String[]{android.provider.Telephony.Sms.ADDRESS};
+                String selection = android.provider.Telephony.Sms.THREAD_ID + " = ? AND " + android.provider.Telephony.Sms.ADDRESS + " IS NOT NULL";
+                String[] args = new String[]{String.valueOf(threadId)};
+                try (android.database.Cursor cursor = getContentResolver().query(
+                        android.provider.Telephony.Sms.CONTENT_URI,
+                        projection,
+                        selection,
+                        args,
+                        android.provider.Telephony.Sms.DATE + " DESC"
+                )) {
+                    if (cursor != null && cursor.moveToFirst()) {
+                        int addrIdx = cursor.getColumnIndex(android.provider.Telephony.Sms.ADDRESS);
+                        if (addrIdx >= 0) {
+                            String found = cursor.getString(addrIdx);
+                            if (found != null && !found.trim().isEmpty()) {
+                                address = found.trim();
+                                com.nextgen.messages.utils.AppExecutors.getInstance().mainThread().execute(this::setupToolbar);
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+            });
         }
     }
 
@@ -233,45 +263,51 @@ public class ConversationActivity extends AppCompatActivity {
     }
 
     private void onSendMessageClicked() {
-        if (!roleManager.isDefaultSmsApp()) {
-            roleManager.requestDefaultSmsRole(roleRequestLauncher);
-            return;
-        }
-
-        String recipient = (address != null && !address.trim().isEmpty()) ? address.trim() : "";
-        if (recipient.isEmpty()) {
-            Toast.makeText(this, R.string.compose_missing_recipient_warning, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        String messageBody = binding.etMessageInput.getText() != null
-                ? binding.etMessageInput.getText().toString().trim()
-                : "";
-
-        if (messageBody.isEmpty()) {
-            return;
-        }
-
-        int subId = (selectedSim != null) ? selectedSim.getSubscriptionId() : -1;
-
-        // Clear input and clear draft
-        binding.etMessageInput.setText("");
-        if (threadId > 0) {
-            storageManager.clearDraft(threadId);
-        }
-
-        // Send via SmsSender
-        smsSender.sendMessage(threadId, recipient, messageBody, subId, new SmsSender.SendCallback() {
-            @Override
-            public void onMessageQueued(@NonNull android.net.Uri messageUri) {
-                // UI automatically refreshes via SmsContentObserver
+        try {
+            if (!roleManager.isDefaultSmsApp()) {
+                roleManager.requestDefaultSmsRole(roleRequestLauncher);
+                return;
             }
 
-            @Override
-            public void onError(@NonNull String errorMessage) {
-                Toast.makeText(ConversationActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+            String recipient = (address != null && !address.trim().isEmpty()) ? address.trim() : "";
+            if (recipient.isEmpty()) {
+                Toast.makeText(this, R.string.compose_missing_recipient_warning, Toast.LENGTH_SHORT).show();
+                return;
             }
-        });
+
+            String messageBody = binding.etMessageInput.getText() != null
+                    ? binding.etMessageInput.getText().toString().trim()
+                    : "";
+
+            if (messageBody.isEmpty()) {
+                return;
+            }
+
+            int subId = (selectedSim != null) ? selectedSim.getSubscriptionId() : -1;
+
+            final String textToSend = messageBody;
+            binding.etMessageInput.setText("");
+            if (threadId > 0) {
+                storageManager.clearDraft(threadId);
+            }
+
+            smsSender.sendMessage(threadId, recipient, textToSend, subId, new SmsSender.SendCallback() {
+                @Override
+                public void onMessageQueued(@NonNull android.net.Uri messageUri) {
+                    // UI automatically refreshes via SmsContentObserver
+                }
+
+                @Override
+                public void onError(@NonNull String errorMessage) {
+                    binding.etMessageInput.setText(textToSend);
+                    binding.etMessageInput.setSelection(textToSend.length());
+                    Toast.makeText(ConversationActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                }
+            });
+        } catch (Throwable t) {
+            android.util.Log.e("ConversationActivity", "Error on send click", t);
+            Toast.makeText(this, "Failed to send: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void onRetryMessageRequested(@NonNull SmsMessage failedMessage) {
@@ -280,15 +316,31 @@ public class ConversationActivity extends AppCompatActivity {
                 .setMessage(R.string.retry_dialog_message)
                 .setPositiveButton(R.string.retry_button, (dialog, which) -> {
                     int subId = (selectedSim != null) ? selectedSim.getSubscriptionId() : failedMessage.getSubscriptionId();
-                    smsSender.retryMessage(failedMessage, subId, new SmsSender.SendCallback() {
-                        @Override
-                        public void onMessageQueued(@NonNull android.net.Uri messageUri) {}
+                    String retryRecipient = failedMessage.getAddress();
+                    if ((retryRecipient == null || retryRecipient.trim().isEmpty()) && address != null) {
+                        retryRecipient = address.trim();
+                    }
+                    if (retryRecipient != null && !retryRecipient.isEmpty() && failedMessage.getBody() != null) {
+                        smsSender.sendMessage(failedMessage.getThreadId(), retryRecipient, failedMessage.getBody(), subId, new SmsSender.SendCallback() {
+                            @Override
+                            public void onMessageQueued(@NonNull android.net.Uri messageUri) {}
 
-                        @Override
-                        public void onError(@NonNull String errorMessage) {
-                            Toast.makeText(ConversationActivity.this, errorMessage, Toast.LENGTH_LONG).show();
-                        }
-                    });
+                            @Override
+                            public void onError(@NonNull String errorMessage) {
+                                Toast.makeText(ConversationActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    } else {
+                        smsSender.retryMessage(failedMessage, subId, new SmsSender.SendCallback() {
+                            @Override
+                            public void onMessageQueued(@NonNull android.net.Uri messageUri) {}
+
+                            @Override
+                            public void onError(@NonNull String errorMessage) {
+                                Toast.makeText(ConversationActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
                 })
                 .setNegativeButton(R.string.dialog_button_cancel, null)
                 .show();

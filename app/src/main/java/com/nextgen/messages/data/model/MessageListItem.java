@@ -78,7 +78,7 @@ public abstract class MessageListItem {
 
         @Override
         public int getItemType() {
-            return message.isOutgoing() ? TYPE_MESSAGE_OUTGOING : TYPE_MESSAGE_INCOMING;
+            return message.isIncoming() ? TYPE_MESSAGE_INCOMING : TYPE_MESSAGE_OUTGOING;
         }
 
         @Override

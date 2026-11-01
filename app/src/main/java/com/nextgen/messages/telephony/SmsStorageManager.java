@@ -1,10 +1,8 @@
 package com.nextgen.messages.telephony;
 
 import android.content.ContentResolver;
-import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.provider.Telephony;
 import android.util.Log;
@@ -71,7 +69,9 @@ public class SmsStorageManager {
         }
 
         ContentValues values = new ContentValues();
-        values.put(Telephony.Sms.THREAD_ID, threadId);
+        if (threadId > 0) {
+            values.put(Telephony.Sms.THREAD_ID, threadId);
+        }
         values.put(Telephony.Sms.ADDRESS, recipient);
         values.put(Telephony.Sms.BODY, body);
         values.put(Telephony.Sms.DATE, System.currentTimeMillis());
@@ -80,20 +80,32 @@ public class SmsStorageManager {
         values.put(Telephony.Sms.SEEN, 1);
         values.put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_OUTBOX);
         values.put(Telephony.Sms.STATUS, Telephony.Sms.STATUS_NONE);
-        values.put(Telephony.Sms.SUBSCRIPTION_ID, subscriptionId);
-
-        try {
-            ContentResolver resolver = appContext.getContentResolver();
-            Uri uri = resolver.insert(Telephony.Sms.CONTENT_URI, values);
-            Log.d(TAG, "Inserted outgoing message into Outbox: " + uri);
-            return uri;
-        } catch (SecurityException se) {
-            Log.e(TAG, "Permission denied writing to Telephony.Sms: " + se.getMessage());
-            return null;
-        } catch (Exception e) {
-            Log.e(TAG, "Error inserting outgoing message into Telephony.Sms", e);
-            return null;
+        if (subscriptionId > 0) {
+            values.put(Telephony.Sms.SUBSCRIPTION_ID, subscriptionId);
         }
+
+        ContentResolver resolver = appContext.getContentResolver();
+        Uri uri = null;
+        try {
+            uri = resolver.insert(Telephony.Sms.Outbox.CONTENT_URI, values);
+        } catch (Exception e) {
+            Log.w(TAG, "Insert into Outbox failed, trying base SMS URI: " + e.getMessage());
+        }
+
+        if (uri == null) {
+            try {
+                uri = resolver.insert(Telephony.Sms.CONTENT_URI, values);
+            } catch (SecurityException se) {
+                Log.e(TAG, "Permission denied writing to Telephony.Sms: " + se.getMessage());
+                return null;
+            } catch (Exception e) {
+                Log.e(TAG, "Error inserting outgoing message into Telephony.Sms", e);
+                return null;
+            }
+        }
+
+        Log.d(TAG, "Inserted outgoing message into store: " + uri);
+        return uri;
     }
 
     /**
@@ -154,7 +166,9 @@ public class SmsStorageManager {
         long threadId = getOrCreateThreadId(sender);
 
         ContentValues values = new ContentValues();
-        values.put(Telephony.Sms.THREAD_ID, threadId);
+        if (threadId > 0) {
+            values.put(Telephony.Sms.THREAD_ID, threadId);
+        }
         values.put(Telephony.Sms.ADDRESS, sender);
         values.put(Telephony.Sms.BODY, body);
         values.put(Telephony.Sms.DATE, timestampMillis > 0 ? timestampMillis : System.currentTimeMillis());
@@ -163,20 +177,32 @@ public class SmsStorageManager {
         values.put(Telephony.Sms.SEEN, 0);
         values.put(Telephony.Sms.TYPE, Telephony.Sms.MESSAGE_TYPE_INBOX);
         values.put(Telephony.Sms.STATUS, Telephony.Sms.STATUS_NONE);
-        values.put(Telephony.Sms.SUBSCRIPTION_ID, subscriptionId);
-
-        try {
-            ContentResolver resolver = appContext.getContentResolver();
-            Uri uri = resolver.insert(Telephony.Sms.CONTENT_URI, values);
-            Log.i(TAG, "Successfully persisted incoming SMS from " + sender + " (threadId=" + threadId + ", uri=" + uri + ")");
-            return uri;
-        } catch (SecurityException se) {
-            Log.e(TAG, "SecurityException persisting incoming message. Is app default SMS? " + se.getMessage());
-            return null;
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to persist incoming message from " + sender, e);
-            return null;
+        if (subscriptionId > 0) {
+            values.put(Telephony.Sms.SUBSCRIPTION_ID, subscriptionId);
         }
+
+        ContentResolver resolver = appContext.getContentResolver();
+        Uri uri = null;
+        try {
+            uri = resolver.insert(Telephony.Sms.Inbox.CONTENT_URI, values);
+        } catch (Exception e) {
+            Log.w(TAG, "Insert into Inbox failed, trying base SMS URI: " + e.getMessage());
+        }
+
+        if (uri == null) {
+            try {
+                uri = resolver.insert(Telephony.Sms.CONTENT_URI, values);
+            } catch (SecurityException se) {
+                Log.e(TAG, "SecurityException persisting incoming message: " + se.getMessage());
+                return null;
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to persist incoming message from " + sender, e);
+                return null;
+            }
+        }
+
+        Log.i(TAG, "Successfully persisted incoming SMS from " + sender + " (threadId=" + threadId + ", uri=" + uri + ")");
+        return uri;
     }
 
     /**
