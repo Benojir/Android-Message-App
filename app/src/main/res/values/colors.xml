@@ -67,6 +67,8 @@
     <color name="md_theme_dark_surfaceContainerHigh">#25292F</color>
 
     <!-- Specific Category Accent Colors -->
+    <color name="cat_all">#00639C</color>
+    <color name="cat_all_container">#CEE5FF</color>
     <color name="cat_personal">#1E88E5</color>
     <color name="cat_personal_container">#E3F2FD</color>
     <color name="cat_transactions">#2E7D32</color>
@@ -75,6 +77,10 @@
     <color name="cat_otp_container">#FFF3E0</color>
     <color name="cat_promotions">#8E24AA</color>
     <color name="cat_promotions_container">#F3E5F5</color>
+    <color name="cat_business">#00838F</color>
+    <color name="cat_business_container">#E0F7FA</color>
     <color name="cat_spam">#C62828</color>
     <color name="cat_spam_container">#FFEBEE</color>
+    <color name="cat_other">#546E7A</color>
+    <color name="cat_other_container">#ECEFF1</color>
 </resources>

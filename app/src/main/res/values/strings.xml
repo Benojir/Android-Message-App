@@ -28,9 +28,9 @@
     <string name="fab_compose_label">Start chat</string>
 
     <!-- Categories Screen -->
-    <string name="categories_title">Categories</string>
-    <string name="categories_subtitle">Smart message organization</string>
-    <string name="categories_description">Automatic on-device classification will group your SMS into structured folders.</string>
+    <string name="categories_title">Smart Categories</string>
+    <string name="categories_subtitle">On-device intelligent organization</string>
+    <string name="categories_description">Privacy-first, 100% offline classification organizes your conversations into intelligent categories.</string>
     <string name="category_personal_title">Personal</string>
     <string name="category_personal_desc">Family, friends, and individual contacts</string>
     <string name="category_transactions_title">Transactions</string>
@@ -159,4 +159,160 @@
     <string name="status_sent">Sent</string>
     <string name="status_delivered">Delivered</string>
     <string name="status_failed">Failed • Tap to retry</string>
+
+    <!-- Step 5: Advanced Chat Interface & Message Management -->
+    <string name="action_copy">Copy text</string>
+    <string name="action_forward">Forward</string>
+    <string name="action_details">Details</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_select_all">Select all</string>
+    <string name="action_call">Call</string>
+    <string name="action_view_contact">View contact</string>
+    <string name="action_copy_number">Copy phone number</string>
+    <string name="action_mark_unread">Mark as unread</string>
+    <string name="action_mark_read">Mark as read</string>
+    <string name="action_delete_conversation">Delete conversation</string>
+
+    <string name="selected_count">%1$d selected</string>
+    <string name="cd_clear_selection">Clear selection</string>
+    <string name="cd_scroll_to_bottom">Scroll to bottom</string>
+
+    <string name="dialog_delete_message_title">Delete message?</string>
+    <string name="dialog_delete_messages_title">Delete %1$d messages?</string>
+    <string name="dialog_delete_message_desc">This message will be permanently deleted from your device.</string>
+    <string name="dialog_delete_messages_desc">%1$d selected messages will be permanently deleted from your device.</string>
+    <string name="dialog_delete_conversation_title">Delete conversation?</string>
+    <string name="dialog_delete_conversation_desc">All SMS messages in this conversation will be permanently deleted from your device.</string>
+    <string name="dialog_delete_conversations_title">Delete %1$d conversations?</string>
+    <string name="dialog_delete_conversations_desc">All SMS messages in %1$d selected conversations will be permanently deleted from your device.</string>
+
+    <string name="undo">Undo</string>
+    <string name="message_deleted">Message deleted</string>
+    <string name="messages_deleted">%1$d messages deleted</string>
+    <string name="conversation_deleted">Conversation deleted</string>
+    <string name="conversations_deleted">%1$d conversations deleted</string>
+    <string name="copied_to_clipboard">Message copied to clipboard</string>
+    <string name="number_copied_to_clipboard">Phone number copied to clipboard</string>
+    <string name="contact_not_found">Contact information not found</string>
+    <string name="toast_mark_read_success">Marked as read</string>
+    <string name="toast_mark_unread_success">Marked as unread</string>
+    <string name="toast_delete_failed">Failed to delete from message store</string>
+    <string name="role_required_for_deletion">NextGen Messages must be your default SMS app to delete messages.</string>
+
+    <string name="dialog_details_title">Message details</string>
+    <string name="details_label_type">TYPE</string>
+    <string name="details_label_from">FROM</string>
+    <string name="details_label_to">TO</string>
+    <string name="details_label_received">RECEIVED</string>
+    <string name="details_label_sent">SENT</string>
+    <string name="details_label_sim">SIM CARD</string>
+    <string name="details_label_status">STATUS</string>
+    <string name="details_label_size">SIZE &amp; ENCODING</string>
+    <string name="details_type_incoming">SMS (Incoming)</string>
+    <string name="details_type_outgoing_sent">SMS (Sent)</string>
+    <string name="details_type_outgoing_outbox">SMS (Sending)</string>
+    <string name="details_type_outgoing_failed">SMS (Failed)</string>
+    <string name="details_type_draft">SMS (Draft)</string>
+    <string name="details_status_delivered">Delivered</string>
+    <string name="details_status_sent">Sent</string>
+    <string name="details_status_failed">Failed (%1$s)</string>
+    <string name="details_status_pending">Pending</string>
+    <string name="details_size_format">%1$d characters (%2$d %3$s, %4$s)</string>
+    <string name="segment_single">segment</string>
+    <string name="segment_plural">segments</string>
+    <string name="not_available">Not available</string>
+    <string name="dialog_button_close">Close</string>
+
+    <!-- Step 6: Complete MMS & Group Messaging -->
+    <string name="cd_mms_image_attachment">MMS image attachment</string>
+    <string name="cd_mms_play_video">Play video attachment</string>
+    <string name="cd_mms_play_audio">Play audio attachment</string>
+    <string name="action_download_mms">Download MMS</string>
+    <string name="retry_download_mms">Retry download</string>
+    <string name="title_image_viewer">Photo</string>
+    <string name="title_video_viewer">Video</string>
+    <string name="error_loading_attachment">Could not load media attachment</string>
+    <string name="cd_remove_attachment">Remove attachment</string>
+    <string name="cd_attach_media">Attach media</string>
+    <string name="action_attach">Attach</string>
+    <string name="compose_subject_hint">MMS Subject (optional)</string>
+    <string name="mms_badge_sms">SMS</string>
+    <string name="mms_badge_mms">MMS</string>
+    <string name="mms_badge_group_mms">Group MMS</string>
+    <string name="mms_size_indicator">%1$s / %2$s (MMS)</string>
+    <string name="mms_attachment_count">%1$d attachments</string>
+    <string name="pref_category_mms">Multimedia Messages (MMS)</string>
+    <string name="pref_mms_auto_download_title">Auto-download MMS</string>
+    <string name="pref_mms_auto_download_summary">Automatically download multimedia messages</string>
+    <string name="pref_mms_roaming_title">Roaming auto-download</string>
+    <string name="pref_mms_roaming_summary">Automatically download MMS while roaming (may incur carrier data roaming charges)</string>
+    <string name="pref_mms_delivery_reports_title">MMS delivery reports</string>
+    <string name="pref_mms_delivery_reports_summary">Request delivery confirmation for sent multimedia messages</string>
+    <string name="pref_mms_read_reports_title">MMS read reports</string>
+    <string name="pref_mms_read_reports_summary">Request read confirmation when recipient views your message</string>
+    <string name="pref_mms_max_size_title">Carrier MMS size limit</string>
+    <string name="pref_mms_max_size_summary">%1$d KB</string>
+
+    <!-- Step 7: Smart Inbox, Categorization & Intelligent Organization -->
+    <string name="category_all_title">All Messages</string>
+    <string name="category_all_desc">All conversations in your inbox</string>
+    <string name="category_business_title">Business</string>
+    <string name="category_business_desc">Deliveries, bookings, appointments, and services</string>
+    <string name="category_other_title">Other</string>
+    <string name="category_other_desc">General and unclassified messages</string>
+
+    <string name="category_action_new">New Category</string>
+    <string name="category_action_rules">Rules</string>
+    <string name="category_count_format">%1$d messages</string>
+    <string name="category_unread_count_format">%1$d unread</string>
+
+    <string name="details_label_smart_category">SMART CATEGORY</string>
+    <string name="details_label_classification_source">SOURCE</string>
+    <string name="details_label_classification_reason">EXPLANATION</string>
+    <string name="action_change_category">Change Category</string>
+    <string name="dialog_change_category_title">Assign Category</string>
+    <string name="checkbox_always_sender">Always apply to sender %1$s</string>
+    <string name="toast_category_updated">Category updated successfully</string>
+
+    <string name="settings_section_smart_inbox">Smart Inbox &amp; Organization</string>
+    <string name="settings_smart_inbox_enable_title">Automatic Categorization</string>
+    <string name="settings_smart_inbox_enable_summary">Automatically classify incoming and existing messages on-device</string>
+    <string name="settings_smart_inbox_scan_title">Scan Existing Messages</string>
+    <string name="settings_smart_inbox_scan_summary">Scan device inbox and apply smart classification</string>
+    <string name="settings_smart_inbox_reclassify_title">Reclassify All Messages</string>
+    <string name="settings_smart_inbox_reclassify_summary">Re-run on-device classification pipeline on all messages</string>
+    <string name="settings_smart_inbox_rules_title">Classification Rules</string>
+    <string name="settings_smart_inbox_rules_summary">Manage custom sender and keyword categorization rules</string>
+    <string name="settings_smart_inbox_reset_title">Reset Classifications</string>
+    <string name="settings_smart_inbox_reset_summary">Clear automatic classifications while preserving manual overrides</string>
+    <string name="dialog_reset_confirm_title">Reset Classifications?</string>
+    <string name="dialog_reset_confirm_message">This will remove all automatic classifications. Manual overrides will be kept. You can re-scan anytime.</string>
+    <string name="action_reset">Reset</string>
+    <string name="toast_reset_success">Automatic classifications reset</string>
+
+    <string name="scan_dialog_title">Scanning Messages</string>
+    <string name="scan_dialog_message">Classifying conversation %1$d of %2$d…</string>
+    <string name="toast_scan_completed">Scan complete: %1$d messages classified</string>
+    <string name="toast_reclassify_completed">Reclassification completed</string>
+
+    <string name="dialog_create_category_title">New Custom Category</string>
+    <string name="dialog_category_name_hint">Category name</string>
+    <string name="dialog_category_color_hint">Color</string>
+    <string name="dialog_delete_category_title">Delete Category</string>
+    <string name="dialog_delete_category_message">Delete category &#8220;%1$s&#8221;? Messages in this category will be safely moved to &#8216;Other&#8217;. No messages will be deleted.</string>
+
+    <string name="dialog_rules_title">Custom Classification Rules</string>
+    <string name="dialog_new_rule_title">New Rule</string>
+    <string name="dialog_rule_name_hint">Rule Name</string>
+    <string name="dialog_rule_type_hint">Condition Type</string>
+    <string name="dialog_rule_value_hint">Pattern / Keyword</string>
+    <string name="dialog_rule_category_hint">Target Category</string>
+    <string name="rule_type_sender_equals">Sender Equals</string>
+    <string name="rule_type_sender_contains">Sender Contains</string>
+    <string name="rule_type_body_contains">Body Contains</string>
+    <string name="rule_type_body_starts_with">Body Starts With</string>
+    <string name="no_rules_configured">No custom classification rules created yet.</string>
+    <string name="action_add_rule">Add Rule</string>
+    <string name="toast_rule_created">Rule created successfully</string>
+    <string name="toast_rule_deleted">Rule deleted</string>
 </resources>

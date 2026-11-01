@@ -120,6 +120,18 @@ public class MainActivity extends AppCompatActivity {
         ft.commitAllowingStateLoss();
     }
 
+    /**
+     * Switches to the Inbox messages tab and selects the specified smart category filter.
+     */
+    public void selectCategoryInInbox(@NonNull String categoryKey) {
+        binding.bottomNavigation.setSelectedItemId(R.id.nav_messages);
+        FragmentManager fm = getSupportFragmentManager();
+        Fragment messagesFragment = fm.findFragmentByTag(TAG_MESSAGES);
+        if (messagesFragment instanceof InboxFragment) {
+            ((InboxFragment) messagesFragment).setSelectedCategory(categoryKey);
+        }
+    }
+
     private void setupBackPressHandling() {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override

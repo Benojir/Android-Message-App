@@ -53,6 +53,18 @@ public class SmsStorageManager {
     }
 
     /**
+     * Resolves or creates a thread ID for multiple recipients (Group MMS) in the Telephony provider.
+     */
+    public long getOrCreateThreadId(@NonNull java.util.Set<String> recipients) {
+        try {
+            return Telephony.Threads.getOrCreateThreadId(appContext, recipients);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to get or create thread ID for recipients: " + recipients, e);
+            return -1L;
+        }
+    }
+
+    /**
      * Inserts a pending outgoing SMS into Telephony.Sms with MESSAGE_TYPE_OUTBOX status.
      *
      * @return The Uri of the newly created message record, or null on failure.
@@ -202,6 +214,30 @@ public class SmsStorageManager {
         }
 
         Log.i(TAG, "Successfully persisted incoming SMS from " + sender + " (threadId=" + threadId + ", uri=" + uri + ")");
+
+        if (uri != null && appPreferences.isSmartInboxEnabled()) {
+            try {
+                long msgId = android.content.ContentUris.parseId(uri);
+                com.nextgen.messages.data.model.SmsMessage smsMessage = new com.nextgen.messages.data.model.SmsMessage(
+                        msgId,
+                        threadId,
+                        sender,
+                        body,
+                        timestampMillis > 0 ? timestampMillis : System.currentTimeMillis(),
+                        timestampMillis > 0 ? timestampMillis : System.currentTimeMillis(),
+                        Telephony.Sms.MESSAGE_TYPE_INBOX,
+                        false,
+                        false,
+                        Telephony.Sms.STATUS_NONE,
+                        0,
+                        subscriptionId
+                );
+                com.nextgen.messages.smartinbox.SmartInboxRepository.getInstance(appContext).classifyMessageSync(smsMessage);
+            } catch (Exception e) {
+                Log.w(TAG, "Automatic classification failed for incoming message: " + e.getMessage());
+            }
+        }
+
         return uri;
     }
 

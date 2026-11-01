@@ -90,6 +90,91 @@ public class AppPreferences {
         }
     }
 
+    public static final String KEY_MMS_AUTO_DOWNLOAD = "pref_mms_auto_download";
+    public static final String KEY_MMS_ROAMING_AUTO_DOWNLOAD = "pref_mms_roaming_auto_download";
+    public static final String KEY_MMS_DELIVERY_REPORTS = "pref_mms_delivery_reports";
+    public static final String KEY_MMS_READ_REPORTS = "pref_mms_read_reports";
+    public static final String KEY_MMS_GROUP_MESSAGING = "pref_mms_group_messaging";
+    public static final String KEY_SMART_INBOX_ENABLED = "pref_smart_inbox_enabled";
+    public static final String KEY_SMART_INBOX_INITIAL_SCAN = "pref_smart_inbox_initial_scan";
+
+    /**
+     * Checks if Smart Inbox automatic categorization is enabled. Default true.
+     */
+    public boolean isSmartInboxEnabled() {
+        return sharedPreferences.getBoolean(KEY_SMART_INBOX_ENABLED, true);
+    }
+
+    public void setSmartInboxEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_SMART_INBOX_ENABLED, enabled).apply();
+    }
+
+    /**
+     * Checks if initial scan of existing inbox messages has been completed.
+     */
+    public boolean isInitialScanCompleted() {
+        return sharedPreferences.getBoolean(KEY_SMART_INBOX_INITIAL_SCAN, false);
+    }
+
+    public void setInitialScanCompleted(boolean completed) {
+        sharedPreferences.edit().putBoolean(KEY_SMART_INBOX_INITIAL_SCAN, completed).apply();
+    }
+
+    /**
+     * Checks if MMS auto-download is enabled. Default true.
+     */
+    public boolean isMmsAutoDownloadEnabled() {
+        return sharedPreferences.getBoolean(KEY_MMS_AUTO_DOWNLOAD, true);
+    }
+
+    public void setMmsAutoDownloadEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_MMS_AUTO_DOWNLOAD, enabled).apply();
+    }
+
+    /**
+     * Checks if MMS auto-download while roaming is enabled. Default false.
+     */
+    public boolean isMmsRoamingAutoDownloadEnabled() {
+        return sharedPreferences.getBoolean(KEY_MMS_ROAMING_AUTO_DOWNLOAD, false);
+    }
+
+    public void setMmsRoamingAutoDownloadEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_MMS_ROAMING_AUTO_DOWNLOAD, enabled).apply();
+    }
+
+    /**
+     * Checks if MMS delivery reports are enabled.
+     */
+    public boolean isMmsDeliveryReportsEnabled() {
+        return sharedPreferences.getBoolean(KEY_MMS_DELIVERY_REPORTS, false);
+    }
+
+    public void setMmsDeliveryReportsEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_MMS_DELIVERY_REPORTS, enabled).apply();
+    }
+
+    /**
+     * Checks if MMS read reports are enabled.
+     */
+    public boolean isMmsReadReportsEnabled() {
+        return sharedPreferences.getBoolean(KEY_MMS_READ_REPORTS, false);
+    }
+
+    public void setMmsReadReportsEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_MMS_READ_REPORTS, enabled).apply();
+    }
+
+    /**
+     * Checks if Group MMS messaging is enabled (vs individual SMS).
+     */
+    public boolean isGroupMmsEnabled() {
+        return sharedPreferences.getBoolean(KEY_MMS_GROUP_MESSAGING, true);
+    }
+
+    public void setGroupMmsEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_MMS_GROUP_MESSAGING, enabled).apply();
+    }
+
     /**
      * Retrieves the saved draft for a conversation thread.
      */

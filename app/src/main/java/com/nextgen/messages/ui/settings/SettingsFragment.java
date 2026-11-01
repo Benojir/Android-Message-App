@@ -21,6 +21,8 @@ import com.nextgen.messages.R;
 import com.nextgen.messages.databinding.FragmentSettingsBinding;
 import com.nextgen.messages.telephony.SmsPermissionManager;
 import com.nextgen.messages.telephony.SmsRoleManager;
+import com.nextgen.messages.data.local.AppPreferences;
+import com.nextgen.messages.mms.transport.MmsConfig;
 import com.nextgen.messages.utils.ThemeHelper;
 
 /**
@@ -86,6 +88,8 @@ public class SettingsFragment extends Fragment {
         setupWindowInsets();
         setupDefaultSmsSection();
         setupAppearanceSection();
+        setupMmsSection();
+        setupSmartInboxSection();
         setupGeneralSection();
         setupFutureSection();
         observeViewModel();
@@ -192,6 +196,142 @@ public class SettingsFragment extends Fragment {
                 })
                 .setNegativeButton(R.string.dialog_button_cancel, null)
                 .show();
+    }
+
+    private void setupMmsSection() {
+        AppPreferences prefs = AppPreferences.getInstance(requireContext());
+
+        binding.switchMmsAutoDownload.setChecked(prefs.isMmsAutoDownloadEnabled());
+        binding.switchMmsAutoDownload.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (buttonView.isPressed()) {
+                prefs.setMmsAutoDownloadEnabled(isChecked);
+            }
+        });
+
+        binding.switchMmsRoaming.setChecked(prefs.isMmsRoamingAutoDownloadEnabled());
+        binding.switchMmsRoaming.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (buttonView.isPressed()) {
+                prefs.setMmsRoamingAutoDownloadEnabled(isChecked);
+            }
+        });
+
+        binding.switchMmsDeliveryReports.setChecked(prefs.isMmsDeliveryReportsEnabled());
+        binding.switchMmsDeliveryReports.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (buttonView.isPressed()) {
+                prefs.setMmsDeliveryReportsEnabled(isChecked);
+            }
+        });
+
+        binding.switchMmsReadReports.setChecked(prefs.isMmsReadReportsEnabled());
+        binding.switchMmsReadReports.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (buttonView.isPressed()) {
+                prefs.setMmsReadReportsEnabled(isChecked);
+            }
+        });
+
+        int maxSize = MmsConfig.getMaxMessageSize(requireContext(), -1);
+        binding.tvMmsMaxSizeSummary.setText(getString(R.string.pref_mms_max_size_summary, maxSize / 1024));
+    }
+
+    private void setupSmartInboxSection() {
+        AppPreferences prefs = AppPreferences.getInstance(requireContext());
+        com.nextgen.messages.smartinbox.SmartInboxRepository smartRepo =
+                com.nextgen.messages.smartinbox.SmartInboxRepository.getInstance(requireContext());
+
+        binding.switchSmartInboxEnabled.setChecked(prefs.isSmartInboxEnabled());
+        binding.switchSmartInboxEnabled.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (buttonView.isPressed()) {
+                prefs.setSmartInboxEnabled(isChecked);
+                Snackbar.make(binding.getRoot(),
+                        isChecked ? "Automatic categorization enabled" : "Automatic categorization disabled",
+                        Snackbar.LENGTH_SHORT).show();
+            }
+        });
+
+        binding.rowScanMessages.setOnClickListener(v -> {
+            View progressView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_scan_progress, null, false);
+            android.widget.TextView tvProgress = progressView.findViewById(R.id.tv_scan_progress_status);
+            com.google.android.material.progressindicator.LinearProgressIndicator progressBar =
+                    progressView.findViewById(R.id.progress_scan);
+
+            androidx.appcompat.app.AlertDialog progressDialog = new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.scan_dialog_title)
+                    .setView(progressView)
+                    .setCancelable(false)
+                    .create();
+            progressDialog.show();
+
+            smartRepo.scanAndClassifyExistingMessages(new com.nextgen.messages.smartinbox.SmartInboxRepository.ScanProgressListener() {
+                @Override
+                public void onProgress(int processed, int total) {
+                    if (isAdded()) {
+                        tvProgress.setText(getString(R.string.scan_dialog_message, processed, total));
+                        if (total > 0) {
+                            progressBar.setIndeterminate(false);
+                            progressBar.setMax(total);
+                            progressBar.setProgress(processed);
+                        }
+                    }
+                }
+
+                @Override
+                public void onCompleted(int totalClassified) {
+                    if (isAdded()) {
+                        prefs.setInitialScanCompleted(true);
+                        progressDialog.dismiss();
+                        Snackbar.make(binding.getRoot(), getString(R.string.toast_scan_completed, totalClassified), Snackbar.LENGTH_LONG).show();
+                    }
+                }
+
+                @Override
+                public void onError(Throwable error) {
+                    if (isAdded()) {
+                        progressDialog.dismiss();
+                        Snackbar.make(binding.getRoot(), "Scan error: " + error.getMessage(), Snackbar.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        });
+
+        binding.rowReclassifyMessages.setOnClickListener(v -> {
+            View progressView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_scan_progress, null, false);
+            android.widget.TextView tvProgress = progressView.findViewById(R.id.tv_scan_progress_status);
+            tvProgress.setText("Reclassifying all messages…");
+
+            androidx.appcompat.app.AlertDialog progressDialog = new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.settings_smart_inbox_reclassify_title)
+                    .setView(progressView)
+                    .setCancelable(false)
+                    .create();
+            progressDialog.show();
+
+            smartRepo.reclassifyAll(() -> {
+                if (isAdded()) {
+                    progressDialog.dismiss();
+                    Snackbar.make(binding.getRoot(), R.string.toast_reclassify_completed, Snackbar.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+        binding.rowManageRules.setOnClickListener(v -> {
+            com.nextgen.messages.ui.categories.RulesManagerDialog.show(requireContext(), getViewLifecycleOwner());
+        });
+
+        binding.rowResetClassifications.setOnClickListener(v -> {
+            new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.dialog_reset_confirm_title)
+                    .setMessage(R.string.dialog_reset_confirm_message)
+                    .setPositiveButton(R.string.action_reset, (dialog, which) -> {
+                        smartRepo.resetAutomaticClassifications(() -> {
+                            if (isAdded()) {
+                                prefs.setInitialScanCompleted(false);
+                                Snackbar.make(binding.getRoot(), R.string.toast_reset_success, Snackbar.LENGTH_SHORT).show();
+                            }
+                        });
+                    })
+                    .setNegativeButton(R.string.dialog_button_cancel, null)
+                    .show();
+        });
     }
 
     private void setupGeneralSection() {

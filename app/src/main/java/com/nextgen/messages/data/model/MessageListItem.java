@@ -11,10 +11,17 @@ public abstract class MessageListItem {
     public static final int TYPE_DATE_HEADER = 0;
     public static final int TYPE_MESSAGE_INCOMING = 1;
     public static final int TYPE_MESSAGE_OUTGOING = 2;
+    public static final int TYPE_MMS_INCOMING = 3;
+    public static final int TYPE_MMS_OUTGOING = 4;
 
     public abstract int getItemType();
 
     public abstract long getItemId();
+
+    @NonNull
+    public static MessageItem fromMessage(@NonNull SmsMessage message) {
+        return new MessageItem(message);
+    }
 
     /**
      * Date separator header in the message list (e.g., "Today", "Yesterday", "Oct 24, 2024").
@@ -78,12 +85,15 @@ public abstract class MessageListItem {
 
         @Override
         public int getItemType() {
+            if (message.isMms()) {
+                return message.isIncoming() ? TYPE_MMS_INCOMING : TYPE_MMS_OUTGOING;
+            }
             return message.isIncoming() ? TYPE_MESSAGE_INCOMING : TYPE_MESSAGE_OUTGOING;
         }
 
         @Override
         public long getItemId() {
-            return message.getId();
+            return message.getCompositeId();
         }
 
         @Override

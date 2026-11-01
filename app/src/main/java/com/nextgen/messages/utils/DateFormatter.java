@@ -143,6 +143,18 @@ public final class DateFormatter {
     }
 
     /**
+     * Formats full date and time for message details screen (e.g., "Nov 1, 2026, 10:45:12 AM").
+     */
+    @NonNull
+    public static String formatFullDateTime(long timestampMs) {
+        if (timestampMs <= 0) {
+            return "";
+        }
+        SimpleDateFormat format = new SimpleDateFormat("MMM d, yyyy, h:mm:ss a", Locale.getDefault());
+        return format.format(new Date(timestampMs));
+    }
+
+    /**
      * Returns a normalized day key (YYYYMMDD) for grouping messages by day.
      */
     public static long getDayKey(long timestampMs) {

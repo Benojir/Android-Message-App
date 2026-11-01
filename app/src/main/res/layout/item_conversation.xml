@@ -39,6 +39,16 @@
             android:textStyle="bold"
             tools:text="AL" />
 
+        <ImageView
+            android:id="@+id/iv_selection_check"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@null"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_check_circle"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
     </FrameLayout>
 
     <TextView

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_layout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="end"
+    android:orientation="vertical"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="3dp">
+
+    <LinearLayout
+        android:id="@+id/bubble_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="64dp"
+        android:background="@drawable/bg_message_outgoing"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <!-- Optional MMS Subject -->
+        <TextView
+            android:id="@+id/tv_mms_subject"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:paddingHorizontal="6dp"
+            android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
+            android:textColor="?attr/colorOnPrimaryContainer"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="Trip Photos"
+            tools:visibility="visible" />
+
+        <!-- Media Attachment Container -->
+        <FrameLayout
+            android:id="@+id/layout_media_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/iv_attachment_image"
+                android:layout_width="220dp"
+                android:layout_height="180dp"
+                android:adjustViewBounds="true"
+                android:background="?attr/colorSurfaceContainerHigh"
+                android:contentDescription="@string/cd_mms_image_attachment"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium" />
+
+            <ImageView
+                android:id="@+id/iv_play_video"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_circle_primary"
+                android:contentDescription="@string/cd_mms_play_video"
+                android:padding="10dp"
+                android:src="@drawable/ic_play_arrow"
+                android:visibility="gone"
+                app:tint="@android:color/white"
+                tools:visibility="visible" />
+
+        </FrameLayout>
+
+        <!-- Inline Audio Player Container -->
+        <LinearLayout
+            android:id="@+id/layout_audio_player"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="8dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_play_audio"
+                style="@style/Widget.Material3.Button.IconButton.Filled"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:contentDescription="@string/cd_mms_play_audio"
+                app:icon="@drawable/ic_play_arrow"
+                app:iconSize="22dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <ProgressBar
+                    android:id="@+id/progress_audio"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100"
+                    android:progress="0" />
+
+                <TextView
+                    android:id="@+id/tv_audio_duration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                    android:textColor="?attr/colorOnPrimaryContainer"
+                    tools:text="0:15 / 0:45" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Message Body Text -->
+        <TextView
+            android:id="@+id/tv_message_body"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:autoLink="all"
+            android:linksClickable="true"
+            android:paddingHorizontal="6dp"
+            android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+            android:textColor="?attr/colorOnPrimaryContainer"
+            android:textIsSelectable="true"
+            tools:text="Check this video out!" />
+
+        <!-- Status & Time Footer -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingEnd="4dp">
+
+            <TextView
+                android:id="@+id/tv_message_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorOnPrimaryContainer"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="Sent"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/tv_message_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:alpha="0.8"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorOnPrimaryContainer"
+                tools:text="11:16 AM" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

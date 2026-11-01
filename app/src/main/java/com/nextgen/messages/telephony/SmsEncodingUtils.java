@@ -41,6 +41,22 @@ public final class SmsEncodingUtils {
             this.isUnicode = isUnicode;
         }
 
+        public int getSegmentCount() {
+            return segmentCount;
+        }
+
+        public boolean isUnicode() {
+            return isUnicode;
+        }
+
+        public int getCodePointCount() {
+            return codePointCount;
+        }
+
+        public int getRemainingInSegment() {
+            return remainingInSegment;
+        }
+
         @NonNull
         public String getCounterLabel() {
             return remainingInSegment + "/" + segmentCount + (isUnicode ? " (Unicode)" : "");

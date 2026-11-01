@@ -51,7 +51,7 @@
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@id/tv_category_desc"
-            app:layout_constraintEnd_toStartOf="@id/tv_category_badge"
+            app:layout_constraintEnd_toStartOf="@id/layout_badge_container"
             app:layout_constraintStart_toEndOf="@id/layout_icon_container"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Personal" />
@@ -66,24 +66,46 @@
             android:textAppearance="@style/TextAppearance.Material3.BodySmall"
             android:textColor="?attr/colorOnSurfaceVariant"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/tv_category_badge"
+            app:layout_constraintEnd_toStartOf="@id/layout_badge_container"
             app:layout_constraintStart_toEndOf="@id/layout_icon_container"
             app:layout_constraintTop_toBottomOf="@id/tv_category_title"
             tools:text="Family, friends, and direct contacts" />
 
-        <TextView
-            android:id="@+id/tv_category_badge"
+        <LinearLayout
+            android:id="@+id/layout_badge_container"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_badge_tonal"
-            android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="Phase 3" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/tv_category_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_badge_tonal"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="12 unread" />
+
+            <ImageView
+                android:id="@+id/btn_category_options"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="@string/action_more_options"
+                android:focusable="true"
+                android:padding="4dp"
+                android:src="@drawable/ic_more_vert"
+                android:visibility="gone"
+                app:tint="?attr/colorOnSurfaceVariant"
+                tools:visibility="visible" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView>
-

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_mark_read"
+        android:icon="@drawable/ic_mark_chat_read"
+        android:title="@string/action_mark_read"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_delete"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/action_delete"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_move_category"
+        android:icon="@drawable/ic_category_other"
+        android:title="@string/action_change_category"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_select_all"
+        android:icon="@drawable/ic_select_all"
+        android:title="@string/action_select_all"
+        app:showAsAction="never" />
+
+</menu>

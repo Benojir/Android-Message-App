@@ -3,10 +3,14 @@ package com.nextgen.messages.data.model;
 import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 /**
  * Immutable data model representing a conversation thread summary in the inbox.
+ * Supports both individual (1-on-1) and group MMS conversations.
  */
 public class Conversation {
 
@@ -22,6 +26,9 @@ public class Conversation {
     private final long date;
     private final int unreadCount;
     private final int messageCount;
+    private final boolean isGroup;
+    @NonNull
+    private final List<String> recipients;
 
     public Conversation(
             long threadId,
@@ -33,6 +40,21 @@ public class Conversation {
             int unreadCount,
             int messageCount
     ) {
+        this(threadId, address, contactName, photoUri, snippet, date, unreadCount, messageCount, false, Collections.emptyList());
+    }
+
+    public Conversation(
+            long threadId,
+            @Nullable String address,
+            @Nullable String contactName,
+            @Nullable Uri photoUri,
+            @Nullable String snippet,
+            long date,
+            int unreadCount,
+            int messageCount,
+            boolean isGroup,
+            @Nullable List<String> recipients
+    ) {
         this.threadId = threadId;
         this.address = address;
         this.contactName = contactName;
@@ -41,6 +63,8 @@ public class Conversation {
         this.date = date;
         this.unreadCount = unreadCount;
         this.messageCount = messageCount;
+        this.isGroup = isGroup;
+        this.recipients = recipients != null ? new ArrayList<>(recipients) : Collections.emptyList();
     }
 
     public long getThreadId() {
@@ -86,6 +110,15 @@ public class Conversation {
 
     public boolean hasUnread() {
         return unreadCount > 0;
+    }
+
+    public boolean isGroup() {
+        return isGroup;
+    }
+
+    @NonNull
+    public List<String> getRecipients() {
+        return Collections.unmodifiableList(recipients);
     }
 
     @NonNull

@@ -2,10 +2,14 @@ package com.nextgen.messages.data.repository;
 
 import android.Manifest;
 import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.provider.Telephony;
+import android.text.TextUtils;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +17,8 @@ import androidx.core.content.ContextCompat;
 import com.nextgen.messages.data.model.ContactInfo;
 import com.nextgen.messages.data.model.Conversation;
 import com.nextgen.messages.data.model.SmsMessage;
+import com.nextgen.messages.mms.storage.MmsStorageManager;
+import com.nextgen.messages.telephony.SmsRoleManager;
 import com.nextgen.messages.utils.AppExecutors;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -183,13 +189,72 @@ public class SmsRepository {
             return Collections.emptyList();
         }
 
+        // Merge MMS Conversations (Step 6)
+        try (Cursor mmsCursor = resolver.query(
+                Telephony.Mms.CONTENT_URI,
+                new String[]{
+                        Telephony.Mms._ID,
+                        Telephony.Mms.THREAD_ID,
+                        Telephony.Mms.DATE,
+                        Telephony.Mms.SUBJECT,
+                        Telephony.Mms.MESSAGE_BOX,
+                        Telephony.Mms.READ
+                },
+                null,
+                null,
+                Telephony.Mms.DATE + " DESC"
+        )) {
+            if (mmsCursor != null && mmsCursor.moveToFirst()) {
+                int threadIdIdx = mmsCursor.getColumnIndex(Telephony.Mms.THREAD_ID);
+                int dateIdx = mmsCursor.getColumnIndex(Telephony.Mms.DATE);
+                int subjIdx = mmsCursor.getColumnIndex(Telephony.Mms.SUBJECT);
+                int boxIdx = mmsCursor.getColumnIndex(Telephony.Mms.MESSAGE_BOX);
+                int readIdx = mmsCursor.getColumnIndex(Telephony.Mms.READ);
+
+                do {
+                    long threadId = threadIdIdx >= 0 ? mmsCursor.getLong(threadIdIdx) : -1L;
+                    if (threadId <= 0) continue;
+
+                    long dateSec = dateIdx >= 0 ? mmsCursor.getLong(dateIdx) : 0L;
+                    long dateMs = dateSec * 1000L;
+                    String subject = subjIdx >= 0 ? mmsCursor.getString(subjIdx) : null;
+                    int box = boxIdx >= 0 ? mmsCursor.getInt(boxIdx) : Telephony.Mms.MESSAGE_BOX_INBOX;
+                    boolean isRead = readIdx >= 0 && mmsCursor.getInt(readIdx) == 1;
+
+                    String snippet = (subject != null && !subject.trim().isEmpty())
+                            ? subject.trim()
+                            : "📷 Multimedia message";
+
+                    ConversationBuilder builder = threadMap.get(threadId);
+                    if (builder == null) {
+                        builder = new ConversationBuilder(threadId, null, snippet, dateMs);
+                        threadMap.put(threadId, builder);
+                    } else if (dateMs > builder.latestDate) {
+                        builder.latestDate = dateMs;
+                        builder.snippet = snippet;
+                    }
+
+                    builder.messageCount++;
+                    if (!isRead && box == Telephony.Mms.MESSAGE_BOX_INBOX) {
+                        builder.unreadCount++;
+                    }
+                } while (mmsCursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Exception while querying Telephony.Mms for conversations: " + e.getMessage(), e);
+        }
+
         // Resolve contacts and construct final Conversation objects
         List<Conversation> result = new ArrayList<>(threadMap.size());
         for (ConversationBuilder b : threadMap.values()) {
-            ContactInfo contact = contactRepository.resolveContact(b.address);
+            String address = b.address;
+            if (address == null || address.isEmpty()) {
+                address = resolveThreadAddress(b.threadId);
+            }
+            ContactInfo contact = contactRepository.resolveContact(address);
             result.add(new Conversation(
                     b.threadId,
-                    b.address,
+                    address,
                     contact.getDisplayName(),
                     contact.getPhotoUri(),
                     b.snippet,
@@ -199,6 +264,7 @@ public class SmsRepository {
             ));
         }
 
+        Collections.sort(result, (c1, c2) -> Long.compare(c2.getDate(), c1.getDate()));
         return result;
     }
 
@@ -294,7 +360,53 @@ public class SmsRepository {
             return Collections.emptyList();
         }
 
+        // Merge MMS messages for this thread (Step 6)
+        try {
+            List<SmsMessage> mmsMessages = MmsStorageManager.getInstance(appContext).getMmsMessagesForThread(threadId);
+            if (!mmsMessages.isEmpty()) {
+                messages.addAll(mmsMessages);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error merging MMS messages for thread " + threadId + ": " + e.getMessage(), e);
+        }
+
+        Collections.sort(messages, (m1, m2) -> Long.compare(m1.getDate(), m2.getDate()));
         return messages;
+    }
+
+    @Nullable
+    private String resolveThreadAddress(long threadId) {
+        try (Cursor cursor = appContext.getContentResolver().query(
+                Telephony.Sms.CONTENT_URI,
+                new String[]{Telephony.Sms.ADDRESS},
+                Telephony.Sms.THREAD_ID + " = ? AND " + Telephony.Sms.ADDRESS + " IS NOT NULL",
+                new String[]{String.valueOf(threadId)},
+                Telephony.Sms.DATE + " DESC LIMIT 1"
+        )) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int idx = cursor.getColumnIndex(Telephony.Sms.ADDRESS);
+                if (idx >= 0) {
+                    String addr = cursor.getString(idx);
+                    if (addr != null && !addr.isEmpty()) return addr;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
+        try {
+            List<SmsMessage> mmsList = MmsStorageManager.getInstance(appContext).getMmsMessagesForThread(threadId);
+            if (!mmsList.isEmpty()) {
+                SmsMessage last = mmsList.get(mmsList.size() - 1);
+                if (last.getAddress() != null && !last.getAddress().isEmpty()) {
+                    return last.getAddress();
+                }
+                if (!last.getRecipients().isEmpty()) {
+                    return TextUtils.join(", ", last.getRecipients());
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 
     /**
@@ -378,13 +490,375 @@ public class SmsRepository {
     }
 
     /**
+     * Marks all unread incoming messages in a thread as read (READ=1, SEEN=1).
+     */
+    public void markThreadMessagesAsRead(long threadId, @Nullable DataCallback<Integer> callback) {
+        executors.diskIO().execute(() -> {
+            try {
+                if (threadId <= 0 || !SmsRoleManager.isDefaultSmsApp(appContext)) {
+                    if (callback != null) {
+                        executors.mainThread().execute(() -> callback.onSuccess(0));
+                    }
+                    return;
+                }
+
+                ContentValues values = new ContentValues();
+                values.put(Telephony.Sms.READ, 1);
+                values.put(Telephony.Sms.SEEN, 1);
+
+                String selection = Telephony.Sms.THREAD_ID + " = ? AND " + Telephony.Sms.READ + " = 0";
+                String[] selectionArgs = new String[]{String.valueOf(threadId)};
+
+                int updated = appContext.getContentResolver().update(
+                        Telephony.Sms.CONTENT_URI,
+                        values,
+                        selection,
+                        selectionArgs
+                );
+                Log.d(TAG, "Marked " + updated + " messages read in thread " + threadId);
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onSuccess(updated));
+                }
+            } catch (Throwable t) {
+                Log.e(TAG, "Failed to mark thread read: " + t.getMessage(), t);
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onError(t));
+                }
+            }
+        });
+    }
+
+    /**
+     * Marks the conversation thread as unread by updating its latest message to READ=0, SEEN=0.
+     */
+    public void markThreadMessagesAsUnread(long threadId, @Nullable DataCallback<Boolean> callback) {
+        executors.diskIO().execute(() -> {
+            try {
+                if (threadId <= 0 || !SmsRoleManager.isDefaultSmsApp(appContext)) {
+                    if (callback != null) {
+                        executors.mainThread().execute(() -> callback.onSuccess(false));
+                    }
+                    return;
+                }
+
+                ContentResolver resolver = appContext.getContentResolver();
+                long targetMessageId = -1L;
+
+                // First find the latest incoming message
+                String selection = Telephony.Sms.THREAD_ID + " = ? AND " + Telephony.Sms.TYPE + " = ?";
+                String[] selectionArgs = new String[]{String.valueOf(threadId), String.valueOf(Telephony.Sms.MESSAGE_TYPE_INBOX)};
+                try (Cursor cursor = resolver.query(
+                        Telephony.Sms.CONTENT_URI,
+                        new String[]{Telephony.Sms._ID},
+                        selection,
+                        selectionArgs,
+                        Telephony.Sms.DATE + " DESC LIMIT 1"
+                )) {
+                    if (cursor != null && cursor.moveToFirst()) {
+                        targetMessageId = cursor.getLong(0);
+                    }
+                }
+
+                // Fallback to any latest message in the thread if no incoming message exists
+                if (targetMessageId <= 0) {
+                    try (Cursor cursor = resolver.query(
+                            Telephony.Sms.CONTENT_URI,
+                            new String[]{Telephony.Sms._ID},
+                            Telephony.Sms.THREAD_ID + " = ?",
+                            new String[]{String.valueOf(threadId)},
+                            Telephony.Sms.DATE + " DESC LIMIT 1"
+                    )) {
+                        if (cursor != null && cursor.moveToFirst()) {
+                            targetMessageId = cursor.getLong(0);
+                        }
+                    }
+                }
+
+                if (targetMessageId <= 0) {
+                    if (callback != null) {
+                        executors.mainThread().execute(() -> callback.onSuccess(false));
+                    }
+                    return;
+                }
+
+                ContentValues values = new ContentValues();
+                values.put(Telephony.Sms.READ, 0);
+                values.put(Telephony.Sms.SEEN, 0);
+
+                Uri uri = ContentUris.withAppendedId(Telephony.Sms.CONTENT_URI, targetMessageId);
+                int rows = resolver.update(uri, values, null, null);
+                Log.d(TAG, "Marked message " + targetMessageId + " as unread (rows=" + rows + ")");
+
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onSuccess(rows > 0));
+                }
+            } catch (Throwable t) {
+                Log.e(TAG, "Failed to mark thread unread: " + t.getMessage(), t);
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onError(t));
+                }
+            }
+        });
+    }
+
+    /**
+     * Bulk marks multiple conversation threads as read.
+     */
+    public void markMultipleThreadsAsRead(@NonNull Set<Long> threadIds, @Nullable DataCallback<Integer> callback) {
+        executors.diskIO().execute(() -> {
+            try {
+                if (threadIds.isEmpty() || !SmsRoleManager.isDefaultSmsApp(appContext)) {
+                    if (callback != null) {
+                        executors.mainThread().execute(() -> callback.onSuccess(0));
+                    }
+                    return;
+                }
+
+                List<String> placeholders = new ArrayList<>(threadIds.size());
+                List<String> args = new ArrayList<>(threadIds.size());
+                for (Long id : threadIds) {
+                    if (id != null && id > 0) {
+                        placeholders.add("?");
+                        args.add(String.valueOf(id));
+                    }
+                }
+
+                if (args.isEmpty()) {
+                    if (callback != null) {
+                        executors.mainThread().execute(() -> callback.onSuccess(0));
+                    }
+                    return;
+                }
+
+                ContentValues values = new ContentValues();
+                values.put(Telephony.Sms.READ, 1);
+                values.put(Telephony.Sms.SEEN, 1);
+
+                String selection = Telephony.Sms.THREAD_ID + " IN (" + TextUtils.join(",", placeholders) + ") AND " + Telephony.Sms.READ + " = 0";
+                int updated = appContext.getContentResolver().update(
+                        Telephony.Sms.CONTENT_URI,
+                        values,
+                        selection,
+                        args.toArray(new String[0])
+                );
+                Log.d(TAG, "Bulk marked " + updated + " messages read across " + threadIds.size() + " threads");
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onSuccess(updated));
+                }
+            } catch (Throwable t) {
+                Log.e(TAG, "Failed to bulk mark threads read: " + t.getMessage(), t);
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onError(t));
+                }
+            }
+        });
+    }
+
+    /**
+     * Safely deletes a single message by its ID, checking both SMS and MMS tables.
+     */
+    public void deleteSingleMessage(long messageId, @Nullable DataCallback<Boolean> callback) {
+        deleteSingleMessage(messageId, false, callback);
+    }
+
+    /**
+     * Safely deletes a single message by its ID and type.
+     */
+    public void deleteSingleMessage(long messageId, boolean isMms, @Nullable DataCallback<Boolean> callback) {
+        executors.diskIO().execute(() -> {
+            try {
+                if (messageId <= 0) {
+                    if (callback != null) {
+                        executors.mainThread().execute(() -> callback.onSuccess(false));
+                    }
+                    return;
+                }
+                if (!SmsRoleManager.isDefaultSmsApp(appContext)) {
+                    throw new SecurityException("NextGen Messages must be default SMS app to delete messages.");
+                }
+
+                boolean success;
+                if (isMms) {
+                    success = MmsStorageManager.getInstance(appContext).deleteMms(messageId);
+                } else {
+                    Uri uri = ContentUris.withAppendedId(Telephony.Sms.CONTENT_URI, messageId);
+                    int rows = appContext.getContentResolver().delete(uri, null, null);
+                    if (rows <= 0) {
+                        // Fallback check if it was an MMS ID
+                        success = MmsStorageManager.getInstance(appContext).deleteMms(messageId);
+                    } else {
+                        success = true;
+                    }
+                }
+
+                Log.d(TAG, "Deleted message " + messageId + " (isMms=" + isMms + ", success=" + success + ")");
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onSuccess(success));
+                }
+            } catch (Throwable t) {
+                Log.e(TAG, "Error deleting message " + messageId + ": " + t.getMessage(), t);
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onError(t));
+                }
+            }
+        });
+    }
+
+    /**
+     * Safely deletes multiple SMS and MMS messages using parameterized selection.
+     */
+    public void deleteMultipleMessages(@NonNull Set<Long> messageIds, @Nullable DataCallback<Integer> callback) {
+        executors.diskIO().execute(() -> {
+            try {
+                if (messageIds.isEmpty()) {
+                    if (callback != null) {
+                        executors.mainThread().execute(() -> callback.onSuccess(0));
+                    }
+                    return;
+                }
+                if (!SmsRoleManager.isDefaultSmsApp(appContext)) {
+                    throw new SecurityException("NextGen Messages must be default SMS app to delete messages.");
+                }
+
+                List<String> placeholders = new ArrayList<>(messageIds.size());
+                List<String> args = new ArrayList<>(messageIds.size());
+                for (Long id : messageIds) {
+                    if (id != null && id > 0) {
+                        placeholders.add("?");
+                        args.add(String.valueOf(id));
+                        // Also attempt deletion on MMS
+                        MmsStorageManager.getInstance(appContext).deleteMms(id);
+                    }
+                }
+
+                if (args.isEmpty()) {
+                    if (callback != null) {
+                        executors.mainThread().execute(() -> callback.onSuccess(0));
+                    }
+                    return;
+                }
+
+                String selection = Telephony.Sms._ID + " IN (" + TextUtils.join(",", placeholders) + ")";
+                int rows = appContext.getContentResolver().delete(
+                        Telephony.Sms.CONTENT_URI,
+                        selection,
+                        args.toArray(new String[0])
+                );
+                Log.d(TAG, "Bulk deleted " + rows + " messages");
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onSuccess(rows));
+                }
+            } catch (Throwable t) {
+                Log.e(TAG, "Error bulk deleting messages: " + t.getMessage(), t);
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onError(t));
+                }
+            }
+        });
+    }
+
+    /**
+     * Safely deletes all SMS and MMS records for an entire conversation thread.
+     */
+    public void deleteConversationSms(long threadId, @Nullable DataCallback<Integer> callback) {
+        executors.diskIO().execute(() -> {
+            try {
+                if (threadId <= 0) {
+                    if (callback != null) {
+                        executors.mainThread().execute(() -> callback.onSuccess(0));
+                    }
+                    return;
+                }
+                if (!SmsRoleManager.isDefaultSmsApp(appContext)) {
+                    throw new SecurityException("NextGen Messages must be default SMS app to delete conversations.");
+                }
+
+                String selection = Telephony.Sms.THREAD_ID + " = ?";
+                String[] selectionArgs = new String[]{String.valueOf(threadId)};
+
+                int smsRows = appContext.getContentResolver().delete(
+                        Telephony.Sms.CONTENT_URI,
+                        selection,
+                        selectionArgs
+                );
+                int mmsRows = MmsStorageManager.getInstance(appContext).deleteMmsForThread(threadId);
+                int total = smsRows + mmsRows;
+
+                Log.d(TAG, "Deleted " + total + " records (" + smsRows + " SMS, " + mmsRows + " MMS) for thread " + threadId);
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onSuccess(total));
+                }
+            } catch (Throwable t) {
+                Log.e(TAG, "Error deleting conversation for thread " + threadId + ": " + t.getMessage(), t);
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onError(t));
+                }
+            }
+        });
+    }
+
+    /**
+     * Safely deletes all SMS and MMS records for multiple conversation threads.
+     */
+    public void deleteMultipleConversationsSms(@NonNull Set<Long> threadIds, @Nullable DataCallback<Integer> callback) {
+        executors.diskIO().execute(() -> {
+            try {
+                if (threadIds.isEmpty()) {
+                    if (callback != null) {
+                        executors.mainThread().execute(() -> callback.onSuccess(0));
+                    }
+                    return;
+                }
+                if (!SmsRoleManager.isDefaultSmsApp(appContext)) {
+                    throw new SecurityException("NextGen Messages must be default SMS app to delete conversations.");
+                }
+
+                List<String> placeholders = new ArrayList<>(threadIds.size());
+                List<String> args = new ArrayList<>(threadIds.size());
+                for (Long id : threadIds) {
+                    if (id != null && id > 0) {
+                        placeholders.add("?");
+                        args.add(String.valueOf(id));
+                    }
+                }
+
+                if (args.isEmpty()) {
+                    if (callback != null) {
+                        executors.mainThread().execute(() -> callback.onSuccess(0));
+                    }
+                    return;
+                }
+
+                String selection = Telephony.Sms.THREAD_ID + " IN (" + TextUtils.join(",", placeholders) + ")";
+                int smsRows = appContext.getContentResolver().delete(
+                        Telephony.Sms.CONTENT_URI,
+                        selection,
+                        args.toArray(new String[0])
+                );
+                int mmsRows = MmsStorageManager.getInstance(appContext).deleteMmsForMultipleThreads(threadIds);
+                int total = smsRows + mmsRows;
+
+                Log.d(TAG, "Deleted " + total + " records (" + smsRows + " SMS, " + mmsRows + " MMS) across " + threadIds.size() + " conversations");
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onSuccess(total));
+                }
+            } catch (Throwable t) {
+                Log.e(TAG, "Error bulk deleting conversations: " + t.getMessage(), t);
+                if (callback != null) {
+                    executors.mainThread().execute(() -> callback.onError(t));
+                }
+            }
+        });
+    }
+
+    /**
      * Temporary builder structure used during conversation grouping.
      */
     private static class ConversationBuilder {
         final long threadId;
         String address;
-        final String snippet;
-        final long latestDate;
+        String snippet;
+        long latestDate;
         int unreadCount = 0;
         int messageCount = 0;
 

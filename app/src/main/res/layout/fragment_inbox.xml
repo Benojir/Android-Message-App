@@ -25,6 +25,20 @@
             app:title="@string/inbox_title"
             app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge" />
 
+        <!-- Contextual Selection Toolbar (Step 5) -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar_selection"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorSurfaceContainerHigh"
+            android:visibility="gone"
+            app:menu="@menu/inbox_selection_menu"
+            app:navigationContentDescription="@string/cd_clear_selection"
+            app:navigationIcon="@drawable/ic_close"
+            app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
+            tools:title="1 selected"
+            tools:visibility="visible" />
+
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progress_loading"
             android:layout_width="match_parent"
@@ -32,6 +46,91 @@
             android:indeterminate="true"
             android:visibility="gone"
             tools:visibility="visible" />
+
+        <!-- Smart Inbox Category Filter Chips -->
+        <HorizontalScrollView
+            android:id="@+id/scroll_category_chips"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clipToPadding="false"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="4dp"
+            android:scrollbars="none">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chip_group_inbox_categories"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_cat_all"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:tag="all"
+                    android:text="@string/category_all_title" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_cat_personal"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="personal"
+                    android:text="@string/category_personal_title" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_cat_transactions"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="transactions"
+                    android:text="@string/category_transactions_title" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_cat_otp"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="otp"
+                    android:text="@string/category_otp_title" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_cat_promotions"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="promotions"
+                    android:text="@string/category_promotions_title" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_cat_business"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="business"
+                    android:text="@string/category_business_title" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_cat_spam"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="spam"
+                    android:text="@string/category_spam_title" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_cat_other"
+                    style="@style/Widget.Material3.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="other"
+                    android:text="@string/category_other_title" />
+
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
 
     </com.google.android.material.appbar.AppBarLayout>
 
