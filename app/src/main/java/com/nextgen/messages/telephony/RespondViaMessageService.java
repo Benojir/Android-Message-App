@@ -7,15 +7,13 @@ import android.os.IBinder;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import androidx.annotation.Nullable;
+import com.nextgen.messages.ui.compose.ComposeActivity;
 
 /**
  * Service required by Android framework for default SMS applications to handle
  * quick text responses when declining an incoming phone call ("Respond via message").
  * Registered for "android.intent.action.RESPOND_VIA_MESSAGE" and protected by
  * permission "android.permission.SEND_RESPOND_VIA_MESSAGE".
- *
- * <p>In Step 2, this provides safe lifecycle handling. Actual message transmission
- * for call declines will be implemented in Step 4.
  */
 public class RespondViaMessageService extends Service {
 
@@ -28,12 +26,14 @@ public class RespondViaMessageService extends Service {
             if (TelephonyManager.ACTION_RESPOND_VIA_MESSAGE.equals(action)) {
                 Uri dataUri = intent.getData();
                 String messageText = intent.getStringExtra(Intent.EXTRA_TEXT);
-                Log.i(TAG, "Received RESPOND_VIA_MESSAGE for URI: " + dataUri
-                        + " (hasText: " + (messageText != null && !messageText.isEmpty()) + ")");
 
-                // NOTE FOR STEP 4:
-                // SMS transmission when declining an incoming phone call will be
-                // implemented in Step 4. Currently, we safely terminate the service.
+                if (dataUri != null && messageText != null && !messageText.trim().isEmpty()) {
+                    String recipient = ComposeActivity.parseRecipientFromUri(dataUri);
+                    if (!recipient.isEmpty()) {
+                        Log.i(TAG, "Sending quick decline SMS to: " + recipient);
+                        SmsSender.getInstance(this).sendMessage(-1L, recipient, messageText, -1, null);
+                    }
+                }
             }
         }
 

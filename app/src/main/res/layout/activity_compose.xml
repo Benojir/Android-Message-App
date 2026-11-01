@@ -40,41 +40,56 @@
             android:paddingHorizontal="16dp"
             android:paddingVertical="16dp">
 
-            <!-- Informational Banner for Step 2 -->
+            <!-- Role Warning Banner -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_role_warning"
                 style="?attr/materialCardViewFilledStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                app:cardBackgroundColor="?attr/colorPrimaryContainer"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="?attr/colorSurfaceContainerHigh"
+                app:cardCornerRadius="14dp"
+                app:cardElevation="0dp"
+                app:strokeColor="?attr/colorOutlineVariant"
+                app:strokeWidth="1dp"
+                tools:visibility="visible">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="10dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_shield"
+                        app:tint="?attr/colorPrimary" />
 
                     <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:text="@string/conversation_role_banner_desc"
+                        android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                        android:textColor="?attr/colorOnSurfaceVariant" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btn_set_default_role"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/compose_step2_banner_title"
-                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="?attr/colorOnPrimaryContainer"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/compose_step2_banner_desc"
-                        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                        android:textColor="?attr/colorOnPrimaryContainer" />
+                        android:text="@string/conversation_role_banner_button"
+                        android:textSize="12sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Recipient Field -->
+            <!-- Recipient Field with Contact Picker -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_recipient"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
@@ -86,8 +101,11 @@
                 app:boxCornerRadiusBottomStart="14dp"
                 app:boxCornerRadiusTopEnd="14dp"
                 app:boxCornerRadiusTopStart="14dp"
+                app:endIconContentDescription="@string/cd_select_contact"
+                app:endIconDrawable="@drawable/ic_category_personal"
+                app:endIconMode="custom"
                 app:helperText="@string/compose_recipient_helper"
-                app:startIconDrawable="@drawable/ic_category_personal">
+                app:startIconDrawable="@drawable/ic_sms">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_recipient"
@@ -98,13 +116,37 @@
                     android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- SIM Selector Row -->
+            <LinearLayout
+                android:id="@+id/layout_sim_selector"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_sim_select"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="44dp"
+                    android:contentDescription="@string/cd_select_sim"
+                    android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                    app:cornerRadius="14dp"
+                    app:icon="@drawable/ic_sim"
+                    app:iconGravity="textStart"
+                    app:iconSize="16dp"
+                    tools:text="SIM 1 (Jio 4G)" />
+
+            </LinearLayout>
+
             <!-- Message Body Field -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/til_message"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="8dp"
                 android:hint="@string/compose_message_hint"
                 app:boxCornerRadiusBottomEnd="14dp"
                 app:boxCornerRadiusBottomStart="14dp"
@@ -117,9 +159,23 @@
                     android:layout_height="wrap_content"
                     android:gravity="top|start"
                     android:inputType="textMultiLine|textCapSentences"
-                    android:minLines="4"
+                    android:minLines="5"
                     android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Counter row -->
+            <TextView
+                android:id="@+id/tv_counter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="20dp"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:visibility="gone"
+                tools:text="145/1"
+                tools:visibility="visible" />
 
             <!-- Send Action Button -->
             <com.google.android.material.button.MaterialButton

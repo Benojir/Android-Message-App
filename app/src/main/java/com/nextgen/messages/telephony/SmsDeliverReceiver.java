@@ -5,16 +5,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
+import android.telephony.SubscriptionManager;
 import android.util.Log;
+import com.nextgen.messages.utils.AppExecutors;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * BroadcastReceiver required by Android framework for default SMS applications.
  * Registered for {@link Telephony.Sms.Intents#SMS_DELIVER_ACTION} ("android.provider.Telephony.SMS_DELIVER")
  * and protected by permission "android.permission.BROADCAST_SMS".
  *
- * <p>In Step 2, this provides the required safe receiving infrastructure:
- * defensive intent inspection and PDU parsing. Full message persistence and notification
- * dispatch will be implemented in Step 4.
+ * <p>Under Android default SMS app architecture, this receiver is responsible for
+ * persisting incoming SMS messages into the Telephony Provider.
+ * Uses {@link #goAsync()} to perform database writes safely on a background thread.
  */
 public class SmsDeliverReceiver extends BroadcastReceiver {
 
@@ -33,40 +37,86 @@ public class SmsDeliverReceiver extends BroadcastReceiver {
             return;
         }
 
-        try {
-            SmsMessage[] messages = Telephony.Sms.Intents.getMessagesFromIntent(intent);
-            if (messages == null || messages.length == 0) {
-                Log.w(TAG, "No SMS messages extracted from SMS_DELIVER intent");
-                return;
-            }
+        final PendingResult pendingResult = goAsync();
+        final Context applicationContext = context.getApplicationContext();
 
-            StringBuilder bodyBuilder = new StringBuilder();
-            String originatingAddress = null;
-            long timestampMillis = System.currentTimeMillis();
+        AppExecutors.getInstance().diskIO().execute(() -> {
+            try {
+                SmsMessage[] messages = Telephony.Sms.Intents.getMessagesFromIntent(intent);
+                if (messages == null || messages.length == 0) {
+                    Log.w(TAG, "No SMS messages extracted from SMS_DELIVER intent");
+                    return;
+                }
 
-            for (SmsMessage message : messages) {
-                if (message != null) {
-                    if (originatingAddress == null) {
-                        originatingAddress = message.getDisplayOriginatingAddress();
-                        timestampMillis = message.getTimestampMillis();
-                    }
-                    String messageBody = message.getDisplayMessageBody();
-                    if (messageBody != null) {
-                        bodyBuilder.append(messageBody);
+                // Extract subscription ID from intent extras if present
+                int subId = intent.getIntExtra("subscription", -1);
+                if (subId <= 0) {
+                    subId = intent.getIntExtra(SubscriptionManager.EXTRA_SUBSCRIPTION_INDEX, -1);
+                }
+
+                // Group message segments by originating address to safely concatenate multipart SMS
+                Map<String, IncomingMessageAccumulator> accumulatedMap = new LinkedHashMap<>();
+
+                for (SmsMessage message : messages) {
+                    if (message != null) {
+                        String sender = message.getDisplayOriginatingAddress();
+                        if (sender == null || sender.trim().isEmpty()) {
+                            sender = message.getOriginatingAddress();
+                        }
+                        if (sender == null) {
+                            sender = "Unknown";
+                        }
+
+                        long timestamp = message.getTimestampMillis();
+                        String bodyPart = message.getDisplayMessageBody();
+                        if (bodyPart == null) {
+                            bodyPart = "";
+                        }
+
+                        IncomingMessageAccumulator acc = accumulatedMap.get(sender);
+                        if (acc == null) {
+                            acc = new IncomingMessageAccumulator(sender, timestamp);
+                            accumulatedMap.put(sender, acc);
+                        }
+                        acc.append(bodyPart);
                     }
                 }
+
+                SmsStorageManager storageManager = SmsStorageManager.getInstance(applicationContext);
+
+                for (IncomingMessageAccumulator item : accumulatedMap.values()) {
+                    String fullBody = item.getBody();
+                    Log.i(TAG, "Persisting incoming SMS from: " + item.sender + " (length: " + fullBody.length() + ")");
+                    storageManager.insertIncomingMessage(item.sender, fullBody, item.timestamp, subId);
+                }
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error processing incoming SMS_DELIVER intent", e);
+            } finally {
+                try {
+                    pendingResult.finish();
+                } catch (Exception ignored) {
+                }
             }
+        });
+    }
 
-            Log.i(TAG, "Safely received SMS delivery event from: " + originatingAddress
-                    + " (length: " + bodyBuilder.length() + ", timestamp: " + timestampMillis + ")");
+    private static class IncomingMessageAccumulator {
+        final String sender;
+        final long timestamp;
+        final StringBuilder bodyBuilder = new StringBuilder();
 
-            // NOTE FOR STEP 4:
-            // Room database insertion, conversation threading, and user notifications
-            // will be implemented in Step 4. This receiver safely validates and consumes
-            // the delivery intent without losing data or throwing unhandled exceptions.
+        IncomingMessageAccumulator(String sender, long timestamp) {
+            this.sender = sender;
+            this.timestamp = timestamp;
+        }
 
-        } catch (Exception e) {
-            Log.e(TAG, "Error processing incoming SMS_DELIVER intent", e);
+        void append(String part) {
+            bodyBuilder.append(part);
+        }
+
+        String getBody() {
+            return bodyBuilder.toString();
         }
     }
 }

@@ -27,6 +27,7 @@ import com.nextgen.messages.data.model.Conversation;
 import com.nextgen.messages.databinding.FragmentInboxBinding;
 import com.nextgen.messages.telephony.SmsContentObserver;
 import com.nextgen.messages.ui.components.ComposeBottomSheetDialogFragment;
+import com.nextgen.messages.ui.compose.ComposeActivity;
 import com.nextgen.messages.ui.conversation.ConversationActivity;
 import java.util.List;
 
@@ -157,8 +158,7 @@ public class InboxFragment extends Fragment {
     private void setupFab() {
         binding.fabCompose.setOnClickListener(v -> {
             v.performHapticFeedback(HapticFeedbackConstants.CONTEXT_CLICK);
-            ComposeBottomSheetDialogFragment.newInstance()
-                    .show(getChildFragmentManager(), ComposeBottomSheetDialogFragment.TAG);
+            startActivity(new Intent(requireContext(), ComposeActivity.class));
         });
     }
 

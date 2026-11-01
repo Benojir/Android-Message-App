@@ -25,6 +25,7 @@ public class PermissionsAndManifestTest {
         assertTrue("Must declare SEND_SMS in Step 2", manifestContent.contains("android.permission.SEND_SMS"));
         assertTrue("Must declare RECEIVE_MMS in Step 2", manifestContent.contains("android.permission.RECEIVE_MMS"));
         assertTrue("Must declare READ_CONTACTS in Step 2", manifestContent.contains("android.permission.READ_CONTACTS"));
+        assertTrue("Must declare READ_PHONE_STATE for Dual SIM in Step 4", manifestContent.contains("android.permission.READ_PHONE_STATE"));
     }
 
     @Test
@@ -61,5 +62,9 @@ public class PermissionsAndManifestTest {
         // 5. ConversationActivity (Step 3)
         assertTrue("Must declare ConversationActivity", manifestContent.contains("ConversationActivity"));
         assertTrue("ConversationActivity must not be exported", manifestContent.contains("android:name=\".ui.conversation.ConversationActivity\"\n            android:exported=\"false\""));
+
+        // 6. Callback Receivers (Step 4)
+        assertTrue("Must declare SmsSentReceiver", manifestContent.contains("SmsSentReceiver"));
+        assertTrue("Must declare SmsDeliveryReceiver", manifestContent.contains("SmsDeliveryReceiver"));
     }
 }

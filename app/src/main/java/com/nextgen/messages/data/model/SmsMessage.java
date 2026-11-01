@@ -128,8 +128,36 @@ public class SmsMessage {
         return type == Telephony.Sms.MESSAGE_TYPE_DRAFT;
     }
 
+    public boolean isOutbox() {
+        return type == Telephony.Sms.MESSAGE_TYPE_OUTBOX
+                || type == Telephony.Sms.MESSAGE_TYPE_QUEUED;
+    }
+
+    public boolean isSent() {
+        return type == Telephony.Sms.MESSAGE_TYPE_SENT;
+    }
+
+    public boolean isDelivered() {
+        return status == Telephony.Sms.STATUS_COMPLETE;
+    }
+
     public boolean isFailed() {
-        return type == Telephony.Sms.MESSAGE_TYPE_FAILED;
+        return type == Telephony.Sms.MESSAGE_TYPE_FAILED
+                || status == Telephony.Sms.STATUS_FAILED;
+    }
+
+    @NonNull
+    public String getDeliveryStatusLabel() {
+        if (isFailed()) {
+            return "Failed • Tap to retry";
+        } else if (isOutbox()) {
+            return "Sending…";
+        } else if (isDelivered()) {
+            return "Delivered";
+        } else if (isSent()) {
+            return "Sent";
+        }
+        return "";
     }
 
     @Override

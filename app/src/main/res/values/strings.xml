@@ -85,7 +85,7 @@
     <string name="settings_about_title">About NextGen Messages</string>
     <string name="settings_about_summary">Modern, privacy-centric SMS/MMS client</string>
     <string name="settings_version_title">App Version</string>
-    <string name="settings_version_value">1.2.0 (Step 3 — Real SMS Inbox &amp; Conversations)</string>
+    <string name="settings_version_value">1.3.0 (Step 4 — Real SMS Sending, Receiving, Dual SIM)</string>
     <string name="settings_architecture_title">Architecture</string>
     <string name="settings_architecture_value">Native Java • MVVM • Material Design 3 • RoleManager</string>
 
@@ -142,4 +142,21 @@
     <string name="cd_back_button">Navigate back</string>
     <string name="cd_recipient_avatar">Recipient avatar</string>
     <string name="loading_messages">Loading messages…</string>
+
+    <!-- Step 4: Real SMS Sending, Receiving, Dual SIM -->
+    <string name="conversation_composer_hint">Text message</string>
+    <string name="conversation_role_banner_desc">NextGen Messages is not currently your default SMS app. Set as default to send SMS messages.</string>
+    <string name="conversation_role_banner_button">Set as Default</string>
+    <string name="sim_dialog_title">Select SIM card</string>
+    <string name="retry_dialog_title">Failed Message</string>
+    <string name="retry_dialog_message">Would you like to retry sending this message now?</string>
+    <string name="retry_button">Retry Now</string>
+    <string name="delete_button">Delete</string>
+    <string name="cd_send_button">Send message</string>
+    <string name="cd_select_sim">Select SIM</string>
+    <string name="cd_select_contact">Pick contact</string>
+    <string name="status_sending">Sending…</string>
+    <string name="status_sent">Sent</string>
+    <string name="status_delivered">Delivered</string>
+    <string name="status_failed">Failed • Tap to retry</string>
 </resources>

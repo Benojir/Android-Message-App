@@ -100,6 +100,23 @@ public class SmsRoleManager {
     }
 
     /**
+     * Static utility to check whether the application is the default SMS app.
+     */
+    public static boolean isDefaultSmsApp(@NonNull Context context) {
+        return new SmsRoleManager(context).isDefaultSmsApp();
+    }
+
+    /**
+     * Launches the official system default SMS role request using an ActivityResultLauncher.
+     */
+    public void requestDefaultSmsRole(@NonNull androidx.activity.result.ActivityResultLauncher<Intent> launcher) {
+        Intent intent = createRequestRoleIntent();
+        if (intent != null) {
+            launcher.launch(intent);
+        }
+    }
+
+    /**
      * Evaluates the comprehensive default SMS status of the application.
      *
      * @return Current {@link RoleStatus}.

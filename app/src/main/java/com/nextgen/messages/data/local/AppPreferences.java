@@ -13,6 +13,8 @@ public class AppPreferences {
     private static final String PREF_NAME = "nextgen_messages_prefs";
     private static final String KEY_THEME_MODE = "pref_theme_mode";
     private static final String KEY_DYNAMIC_COLORS = "pref_dynamic_colors";
+    private static final String PREFIX_RECIPIENT_SIM = "pref_sim_recipient_";
+    private static final String PREFIX_THREAD_DRAFT = "pref_draft_thread_";
 
     private static volatile AppPreferences instance;
     private final SharedPreferences sharedPreferences;
@@ -60,5 +62,55 @@ public class AppPreferences {
      */
     public void setDynamicColorsEnabled(boolean enabled) {
         sharedPreferences.edit().putBoolean(KEY_DYNAMIC_COLORS, enabled).apply();
+    }
+
+    /**
+     * Retrieves the preferred SIM subscription ID for a recipient, or -1 if not set.
+     */
+    public int getPreferredSimForRecipient(String recipient) {
+        if (recipient == null || recipient.trim().isEmpty()) {
+            return -1;
+        }
+        String cleanRecipient = recipient.replaceAll("[^0-9+A-Za-z]", "");
+        return sharedPreferences.getInt(PREFIX_RECIPIENT_SIM + cleanRecipient, -1);
+    }
+
+    /**
+     * Saves the preferred SIM subscription ID for a recipient.
+     */
+    public void setPreferredSimForRecipient(String recipient, int subscriptionId) {
+        if (recipient == null || recipient.trim().isEmpty()) {
+            return;
+        }
+        String cleanRecipient = recipient.replaceAll("[^0-9+A-Za-z]", "");
+        if (subscriptionId <= 0) {
+            sharedPreferences.edit().remove(PREFIX_RECIPIENT_SIM + cleanRecipient).apply();
+        } else {
+            sharedPreferences.edit().putInt(PREFIX_RECIPIENT_SIM + cleanRecipient, subscriptionId).apply();
+        }
+    }
+
+    /**
+     * Retrieves the saved draft for a conversation thread.
+     */
+    public String getDraftForThread(long threadId) {
+        if (threadId <= 0) {
+            return "";
+        }
+        return sharedPreferences.getString(PREFIX_THREAD_DRAFT + threadId, "");
+    }
+
+    /**
+     * Saves or clears a draft for a conversation thread.
+     */
+    public void setDraftForThread(long threadId, String draft) {
+        if (threadId <= 0) {
+            return;
+        }
+        if (draft == null || draft.trim().isEmpty()) {
+            sharedPreferences.edit().remove(PREFIX_THREAD_DRAFT + threadId).apply();
+        } else {
+            sharedPreferences.edit().putString(PREFIX_THREAD_DRAFT + threadId, draft).apply();
+        }
     }
 }
