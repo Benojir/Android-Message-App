@@ -1,0 +1,94 @@
+<resources>
+    <string name="app_name">NextGen Messages</string>
+
+    <!-- Navigation -->
+    <string name="nav_messages">Messages</string>
+    <string name="nav_categories">Categories</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Top App Bar & Search -->
+    <string name="inbox_title">Messages</string>
+    <string name="inbox_brand_tag">NextGen</string>
+    <string name="action_search">Search</string>
+    <string name="action_more_options">More options</string>
+    <string name="action_mark_all_read">Mark all as read</string>
+    <string name="action_archived">Archived</string>
+    <string name="action_starred">Starred</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_about">About</string>
+    <string name="search_hint">Search conversations</string>
+    <string name="search_placeholder_notice">Search functionality will be active in Step 2.</string>
+
+    <!-- Inbox Empty State -->
+    <string name="empty_inbox_title">No conversations yet</string>
+    <string name="empty_inbox_subtitle">Your messages will appear here.</string>
+    <string name="empty_inbox_hint">Tap the compose button below to start a conversation once telephony is connected.</string>
+    <string name="privacy_badge_text">Privacy First • 100% Offline • No Trackers</string>
+    <string name="fab_compose_cd">Compose new message</string>
+    <string name="fab_compose_label">Start chat</string>
+
+    <!-- Categories Screen -->
+    <string name="categories_title">Categories</string>
+    <string name="categories_subtitle">Smart message organization</string>
+    <string name="categories_description">Automatic on-device classification will group your SMS into structured folders.</string>
+    <string name="category_personal_title">Personal</string>
+    <string name="category_personal_desc">Family, friends, and individual contacts</string>
+    <string name="category_transactions_title">Transactions</string>
+    <string name="category_transactions_desc">Bank alerts, debits, credits, and receipts</string>
+    <string name="category_otp_title">OTP &amp; Codes</string>
+    <string name="category_otp_desc">Two-factor auth and one-time verification pins</string>
+    <string name="category_promotions_title">Promotions</string>
+    <string name="category_promotions_desc">Offers, discounts, and brand announcements</string>
+    <string name="category_spam_title">Spam &amp; Blocked</string>
+    <string name="category_spam_desc">Filtered unwanted spam and blocked numbers</string>
+    <string name="category_badge_phase3">Phase 3</string>
+    <string name="category_badge_phase4">Phase 4</string>
+    <string name="category_click_toast">%1$s category filtering will be enabled in Phase 3.</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_appearance">Appearance</string>
+    <string name="settings_theme_title">Theme</string>
+    <string name="settings_theme_summary">Choose your preferred visual style</string>
+    <string name="settings_dynamic_color_title">Material You Dynamic Colors</string>
+    <string name="settings_dynamic_color_summary">Harmonize colors with system wallpaper (Android 12+)</string>
+    <string name="theme_dialog_title">Select Theme</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light mode</string>
+    <string name="theme_dark">Dark mode</string>
+
+    <string name="settings_section_general">General</string>
+    <string name="settings_about_title">About NextGen Messages</string>
+    <string name="settings_about_summary">Modern, privacy-centric SMS/MMS client</string>
+    <string name="settings_version_title">App Version</string>
+    <string name="settings_version_value">1.0.0 (Step 1 — Foundation)</string>
+    <string name="settings_architecture_title">Architecture</string>
+    <string name="settings_architecture_value">Native Java • MVVM • Material Design 3</string>
+
+    <string name="settings_section_future">Upcoming Capabilities</string>
+    <string name="settings_default_sms_title">Default SMS Application</string>
+    <string name="settings_default_sms_summary">Set as primary device messaging handler</string>
+    <string name="settings_notifications_title">Notifications &amp; Alerts</string>
+    <string name="settings_notifications_summary">Channels, quiet hours, and quick reply</string>
+    <string name="settings_privacy_title">Privacy Vault</string>
+    <string name="settings_privacy_summary">Biometric app lock and on-device encryption</string>
+    <string name="settings_backup_title">Local Backup &amp; Restore</string>
+    <string name="settings_backup_summary">Export and import encrypted message archives</string>
+    <string name="badge_phase2">Phase 2</string>
+    <string name="badge_phase4">Phase 4</string>
+    <string name="badge_phase5">Phase 5</string>
+    <string name="future_feature_dialog_title">Scheduled Feature</string>
+    <string name="future_feature_dialog_message">%1$s is scheduled for %2$s. This project follows strict phased development.</string>
+
+    <!-- About Dialog -->
+    <string name="about_dialog_title">NextGen Messages</string>
+    <string name="about_dialog_content">NextGen Messages is a modern, high-performance, and privacy-focused native Android SMS/MMS application.\n\n• Zero tracking or analytics\n• 100% offline functionality\n• Material Design 3 &amp; Material You\n• Built purely with Native Java &amp; XML</string>
+    <string name="dialog_button_ok">OK</string>
+    <string name="dialog_button_cancel">Cancel</string>
+
+    <!-- Compose Placeholder Sheet / Dialog -->
+    <string name="compose_placeholder_title">New Conversation</string>
+    <string name="compose_placeholder_subtitle">Phase 2 Implementation</string>
+    <string name="compose_placeholder_description">Direct SMS/MMS messaging, contact picker, and conversation threads will be implemented in Step 2.\n\nPer project guidelines, no SMS permissions are requested in this foundation phase.</string>
+    <string name="compose_placeholder_button">Got it</string>
+</resources>

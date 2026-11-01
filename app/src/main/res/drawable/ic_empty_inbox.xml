@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="160"
+    android:viewportHeight="160">
+
+    <!-- Ambient background glow ring -->
+    <path
+        android:fillColor="?attr/colorSurfaceVariant"
+        android:pathData="M80,18 A62,62 0 1,0 142,80 A62,62 0 0,0 80,18 Z"
+        android:alpha="0.35" />
+
+    <path
+        android:fillColor="?attr/colorPrimaryContainer"
+        android:pathData="M80,32 A48,48 0 1,0 128,80 A48,48 0 0,0 80,32 Z"
+        android:alpha="0.45" />
+
+    <!-- Secondary background message bubble (left offset) -->
+    <path
+        android:fillColor="?attr/colorSecondaryContainer"
+        android:pathData="M38,48 C38,43.58 41.58,40 46,40 L98,40 C102.42,40 106,43.58 106,48 L106,82 C106,86.42 102.42,90 98,90 L56,90 L42,102 L42,90 L46,90 C41.58,90 38,86.42 38,82 Z" />
+
+    <!-- Secondary bubble internal preview lines -->
+    <path
+        android:fillColor="?attr/colorOnSecondaryContainer"
+        android:pathData="M52,54 L86,54 A2,2 0 0,1 88,56 A2,2 0 0,1 86,58 L52,58 A2,2 0 0,1 50,56 A2,2 0 0,1 52,54 Z"
+        android:alpha="0.6" />
+    <path
+        android:fillColor="?attr/colorOnSecondaryContainer"
+        android:pathData="M52,66 L74,66 A2,2 0 0,1 76,68 A2,2 0 0,1 74,70 L52,70 A2,2 0 0,1 50,68 A2,2 0 0,1 52,66 Z"
+        android:alpha="0.4" />
+
+    <!-- Foreground primary message bubble (right offset) -->
+    <path
+        android:fillColor="?attr/colorPrimary"
+        android:pathData="M64,68 C64,63.58 67.58,60 72,60 L122,60 C126.42,60 130,63.58 130,68 L130,100 C130,104.42 126.42,108 122,108 L116,108 L116,120 L102,108 L72,108 C67.58,108 64,104.42 64,100 Z" />
+
+    <!-- Foreground bubble internal text lines -->
+    <path
+        android:fillColor="?attr/colorOnPrimary"
+        android:pathData="M78,74 L114,74 A2,2 0 0,1 116,76 A2,2 0 0,1 114,78 L78,78 A2,2 0 0,1 76,76 A2,2 0 0,1 78,74 Z" />
+    <path
+        android:fillColor="?attr/colorOnPrimary"
+        android:pathData="M78,86 L102,86 A2,2 0 0,1 104,88 A2,2 0 0,1 102,90 L78,90 A2,2 0 0,1 76,88 A2,2 0 0,1 78,86 Z"
+        android:alpha="0.8" />
+
+    <!-- Small decorative sparkle / connectivity dot -->
+    <path
+        android:fillColor="?attr/colorTertiary"
+        android:pathData="M118,34 L120,40 L126,42 L120,44 L118,50 L116,44 L110,42 L116,40 Z" />
+
+    <path
+        android:fillColor="?attr/colorTertiary"
+        android:pathData="M34,70 L35,74 L39,75 L35,76 L34,80 L33,76 L29,75 L33,74 Z"
+        android:alpha="0.7" />
+</vector>
