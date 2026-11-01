@@ -44,6 +44,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Read-Only Conversation Detail Activity (Step 3) -->
+        <activity
+            android:name=".ui.conversation.ConversationActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.main.MainActivity"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- BroadcastReceiver for SMS Delivery -->
         <receiver
             android:name=".telephony.SmsDeliverReceiver"

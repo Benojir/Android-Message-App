@@ -85,7 +85,7 @@
     <string name="settings_about_title">About NextGen Messages</string>
     <string name="settings_about_summary">Modern, privacy-centric SMS/MMS client</string>
     <string name="settings_version_title">App Version</string>
-    <string name="settings_version_value">1.1.0 (Step 2 — Default SMS Integration)</string>
+    <string name="settings_version_value">1.2.0 (Step 3 — Real SMS Inbox &amp; Conversations)</string>
     <string name="settings_architecture_title">Architecture</string>
     <string name="settings_architecture_value">Native Java • MVVM • Material Design 3 • RoleManager</string>
 
@@ -127,4 +127,19 @@
     <string name="compose_placeholder_subtitle">Step 2 Default SMS Integration</string>
     <string name="compose_placeholder_description">Default SMS role integration and ACTION_SENDTO compose support are now active. Direct SMS/MMS transmission and conversation storage will be completed in Step 4.\n\nTap below to open the Compose screen.</string>
     <string name="compose_placeholder_button">Open Compose Screen</string>
+
+    <!-- Step 3: Inbox & Conversation Management -->
+    <string name="cd_conversation_item_unread">%1$s, %2$d unread messages</string>
+    <string name="cd_conversation_item_read">Conversation with %1$s</string>
+    <string name="search_empty_title">No results found</string>
+    <string name="search_empty_subtitle">No conversations or messages match \"%1$s\"</string>
+    <string name="permission_banner_title">SMS Permission Required</string>
+    <string name="permission_banner_desc">Grant SMS access to view your real device conversations and message history.</string>
+    <string name="permission_banner_action">Grant Access</string>
+    <string name="conversation_readonly_banner">Step 3 is strictly read-only. Sending and deleting messages will be enabled in future steps.</string>
+    <string name="conversation_readonly_input">Sending disabled in Step 3</string>
+    <string name="conversation_title_unknown">Unknown</string>
+    <string name="cd_back_button">Navigate back</string>
+    <string name="cd_recipient_avatar">Recipient avatar</string>
+    <string name="loading_messages">Loading messages…</string>
 </resources>

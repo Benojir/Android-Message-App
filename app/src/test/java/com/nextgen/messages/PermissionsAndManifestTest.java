@@ -57,5 +57,9 @@ public class PermissionsAndManifestTest {
         assertTrue("Must declare RespondViaMessageService", manifestContent.contains("RespondViaMessageService"));
         assertTrue("Must handle RESPOND_VIA_MESSAGE", manifestContent.contains("android.intent.action.RESPOND_VIA_MESSAGE"));
         assertTrue("Must require SEND_RESPOND_VIA_MESSAGE", manifestContent.contains("android.permission.SEND_RESPOND_VIA_MESSAGE"));
+
+        // 5. ConversationActivity (Step 3)
+        assertTrue("Must declare ConversationActivity", manifestContent.contains("ConversationActivity"));
+        assertTrue("ConversationActivity must not be exported", manifestContent.contains("android:name=\".ui.conversation.ConversationActivity\"\n            android:exported=\"false\""));
     }
 }
