@@ -24,5 +24,8 @@ public class NextGenApp extends Application {
 
         // Apply saved theme mode
         ThemeHelper.applyTheme(preferences.getThemeMode());
+
+        // Initialize notification channels for Android 8.0+
+        com.nextgen.messages.notification.NotificationChannelManager.initChannels(this);
     }
 }

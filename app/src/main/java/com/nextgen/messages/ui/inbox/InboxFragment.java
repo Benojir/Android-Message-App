@@ -2,6 +2,7 @@ package com.nextgen.messages.ui.inbox;
 
 import android.Manifest;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.HapticFeedbackConstants;
 import android.view.LayoutInflater;
@@ -31,6 +32,10 @@ import com.nextgen.messages.databinding.FragmentInboxBinding;
 import com.nextgen.messages.telephony.SmsContentObserver;
 import com.nextgen.messages.ui.compose.ComposeActivity;
 import com.nextgen.messages.ui.conversation.ConversationActivity;
+import com.nextgen.messages.ui.archived.ArchivedActivity;
+import com.nextgen.messages.ui.starred.StarredMessagesActivity;
+import com.nextgen.messages.ui.spam.SpamBlockedActivity;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -202,7 +207,60 @@ public class InboxFragment extends Fragment {
 
         binding.toolbarSelection.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.action_mark_read) {
+            if (id == R.id.action_pin) {
+                Set<Long> selected = new HashSet<>(conversationAdapter.getSelectedThreadIds());
+                if (!selected.isEmpty()) {
+                    viewModel.togglePinConversations(selected, () -> {
+                        conversationAdapter.clearSelection();
+                        updateSelectionUi();
+                    });
+                }
+                return true;
+            } else if (id == R.id.action_archive) {
+                Set<Long> selected = new HashSet<>(conversationAdapter.getSelectedThreadIds());
+                if (!selected.isEmpty()) {
+                    viewModel.archiveConversations(selected, () -> {
+                        conversationAdapter.clearSelection();
+                        updateSelectionUi();
+                        Snackbar.make(binding.getRoot(), R.string.toast_archived, Snackbar.LENGTH_SHORT).show();
+                    });
+                }
+                return true;
+            } else if (id == R.id.action_block) {
+                List<Conversation> selectedConvs = getSelectedConversations();
+                if (!selectedConvs.isEmpty()) {
+                    new MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(R.string.action_block)
+                            .setMessage(R.string.dialog_block_message)
+                            .setPositiveButton(R.string.action_block, (d, w) -> {
+                                viewModel.blockSelectedConversations(selectedConvs, () -> {
+                                    conversationAdapter.clearSelection();
+                                    updateSelectionUi();
+                                    Snackbar.make(binding.getRoot(), R.string.toast_sender_blocked, Snackbar.LENGTH_SHORT).show();
+                                });
+                            })
+                            .setNegativeButton(R.string.dialog_button_cancel, null)
+                            .show();
+                }
+                return true;
+            } else if (id == R.id.action_report_spam) {
+                List<Conversation> selectedConvs = getSelectedConversations();
+                if (!selectedConvs.isEmpty()) {
+                    new MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(R.string.action_report_spam)
+                            .setMessage(R.string.dialog_report_spam_message)
+                            .setPositiveButton(R.string.action_report_spam, (d, w) -> {
+                                viewModel.reportSpamSelectedConversations(selectedConvs, () -> {
+                                    conversationAdapter.clearSelection();
+                                    updateSelectionUi();
+                                    Snackbar.make(binding.getRoot(), R.string.toast_sender_blocked, Snackbar.LENGTH_SHORT).show();
+                                });
+                            })
+                            .setNegativeButton(R.string.dialog_button_cancel, null)
+                            .show();
+                }
+                return true;
+            } else if (id == R.id.action_mark_read) {
                 Set<Long> selected = new HashSet<>(conversationAdapter.getSelectedThreadIds());
                 if (!selected.isEmpty()) {
                     viewModel.markConversationsAsRead(selected, null);
@@ -278,14 +336,35 @@ public class InboxFragment extends Fragment {
                 }
             }
             return true;
-        } else if (id == R.id.action_archived || id == R.id.action_starred) {
-            Snackbar.make(binding.getRoot(), item.getTitle() + " - " + getString(R.string.badge_phase2), Snackbar.LENGTH_SHORT).show();
+        } else if (id == R.id.action_archived) {
+            startActivity(new Intent(requireContext(), ArchivedActivity.class));
+            return true;
+        } else if (id == R.id.action_starred) {
+            startActivity(new Intent(requireContext(), StarredMessagesActivity.class));
+            return true;
+        } else if (id == R.id.action_spam_blocked) {
+            startActivity(new Intent(requireContext(), SpamBlockedActivity.class));
             return true;
         } else if (id == R.id.action_about) {
             showAboutDialog();
             return true;
         }
         return false;
+    }
+
+    @NonNull
+    private List<Conversation> getSelectedConversations() {
+        Set<Long> ids = conversationAdapter.getSelectedThreadIds();
+        List<Conversation> currentList = conversationAdapter.getCurrentList();
+        List<Conversation> result = new ArrayList<>();
+        if (currentList != null) {
+            for (Conversation c : currentList) {
+                if (ids.contains(c.getThreadId())) {
+                    result.add(c);
+                }
+            }
+        }
+        return result;
     }
 
     private void showDeleteConfirmationDialog(@NonNull Set<Long> threadIds) {
@@ -362,10 +441,13 @@ public class InboxFragment extends Fragment {
     }
 
     private void requestRequiredPermissions() {
-        permissionLauncher.launch(new String[]{
-                Manifest.permission.READ_SMS,
-                Manifest.permission.READ_CONTACTS
-        });
+        List<String> perms = new ArrayList<>();
+        perms.add(Manifest.permission.READ_SMS);
+        perms.add(Manifest.permission.READ_CONTACTS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            perms.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+        permissionLauncher.launch(perms.toArray(new String[0]));
     }
 
     private void observeViewModel() {

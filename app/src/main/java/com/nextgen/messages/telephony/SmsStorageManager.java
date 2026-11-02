@@ -215,6 +215,42 @@ public class SmsStorageManager {
 
         Log.i(TAG, "Successfully persisted incoming SMS from " + sender + " (threadId=" + threadId + ", uri=" + uri + ")");
 
+        // Step 8: Auto-unarchive thread if enabled
+        if (threadId > 0) {
+            com.nextgen.messages.data.repository.ConversationMetadataRepository.getInstance(appContext)
+                    .checkAndAutoUnarchive(threadId);
+        }
+
+        // Step 8: Spam Protection and Suspicious Link analysis
+        if (uri != null) {
+            try {
+                com.nextgen.messages.security.SpamProtectionEngine.Evaluation eval =
+                        com.nextgen.messages.security.SpamProtectionEngine.getInstance(appContext).evaluate(sender, body);
+                if (eval.isSpam()) {
+                    com.nextgen.messages.data.repository.ConversationMetadataRepository.getInstance(appContext)
+                            .getOrCreateMetadata(threadId);
+                    com.nextgen.messages.smartinbox.db.SmartInboxDatabase.getInstance(appContext).smartInboxDao()
+                            .updateSpamStatus(threadId, true);
+                }
+                if (eval.hasSuspiciousLink()) {
+                    long msgId = android.content.ContentUris.parseId(uri);
+                    com.nextgen.messages.smartinbox.db.SecurityWarningEntity warning =
+                            com.nextgen.messages.smartinbox.db.SecurityWarningEntity.create(
+                                    "SMS_" + msgId,
+                                    threadId,
+                                    "",
+                                    "SUSPICIOUS_LINK",
+                                    eval.getLinkReason() != null ? eval.getLinkReason() : "Suspicious link detected",
+                                    System.currentTimeMillis()
+                            );
+                    com.nextgen.messages.smartinbox.db.SmartInboxDatabase.getInstance(appContext).smartInboxDao()
+                            .insertSecurityWarning(warning);
+                }
+            } catch (Exception e) {
+                Log.w(TAG, "Spam/link check failed: " + e.getMessage());
+            }
+        }
+
         if (uri != null && appPreferences.isSmartInboxEnabled()) {
             try {
                 long msgId = android.content.ContentUris.parseId(uri);
@@ -235,6 +271,24 @@ public class SmsStorageManager {
                 com.nextgen.messages.smartinbox.SmartInboxRepository.getInstance(appContext).classifyMessageSync(smsMessage);
             } catch (Exception e) {
                 Log.w(TAG, "Automatic classification failed for incoming message: " + e.getMessage());
+            }
+        }
+
+        // Step 9: Post real-time incoming SMS notification
+        if (uri != null) {
+            try {
+                long msgId = android.content.ContentUris.parseId(uri);
+                com.nextgen.messages.notification.MessageNotificationManager.getInstance(appContext)
+                        .notifyIncomingSms(
+                                threadId,
+                                sender,
+                                body,
+                                timestampMillis > 0 ? timestampMillis : System.currentTimeMillis(),
+                                subscriptionId,
+                                "SMS_" + msgId
+                        );
+            } catch (Exception e) {
+                Log.e(TAG, "Failed posting incoming SMS notification", e);
             }
         }
 

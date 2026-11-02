@@ -97,6 +97,66 @@ public class AppPreferences {
     public static final String KEY_MMS_GROUP_MESSAGING = "pref_mms_group_messaging";
     public static final String KEY_SMART_INBOX_ENABLED = "pref_smart_inbox_enabled";
     public static final String KEY_SMART_INBOX_INITIAL_SCAN = "pref_smart_inbox_initial_scan";
+    public static final String KEY_AUTO_UNARCHIVE = "pref_auto_unarchive";
+    public static final String KEY_SUSPICIOUS_LINK_WARNINGS = "pref_suspicious_link_warnings";
+    public static final String KEY_UNKNOWN_SENDER_FILTER = "pref_unknown_sender_filter";
+    public static final String KEY_SPAM_PROTECTION = "pref_spam_protection";
+    public static final String KEY_SPAM_SENSITIVITY = "pref_spam_sensitivity";
+
+    /**
+     * Checks if Auto-Unarchive is enabled when new incoming messages arrive. Default true.
+     */
+    public boolean isAutoUnarchiveEnabled() {
+        return sharedPreferences.getBoolean(KEY_AUTO_UNARCHIVE, true);
+    }
+
+    public void setAutoUnarchiveEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_AUTO_UNARCHIVE, enabled).apply();
+    }
+
+    /**
+     * Checks if suspicious link warnings and phishing detection are enabled. Default true.
+     */
+    public boolean isSuspiciousLinkWarningsEnabled() {
+        return sharedPreferences.getBoolean(KEY_SUSPICIOUS_LINK_WARNINGS, true);
+    }
+
+    public void setSuspiciousLinkWarningsEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_SUSPICIOUS_LINK_WARNINGS, enabled).apply();
+    }
+
+    /**
+     * Checks if Unknown Senders filtering is enabled. Default false.
+     */
+    public boolean isUnknownSenderFilterEnabled() {
+        return sharedPreferences.getBoolean(KEY_UNKNOWN_SENDER_FILTER, false);
+    }
+
+    public void setUnknownSenderFilterEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_UNKNOWN_SENDER_FILTER, enabled).apply();
+    }
+
+    /**
+     * Checks if Spam Protection is enabled. Default true.
+     */
+    public boolean isSpamProtectionEnabled() {
+        return sharedPreferences.getBoolean(KEY_SPAM_PROTECTION, true);
+    }
+
+    public void setSpamProtectionEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_SPAM_PROTECTION, enabled).apply();
+    }
+
+    /**
+     * Gets the spam sensitivity level: "CONSERVATIVE" or "BALANCED". Default "CONSERVATIVE".
+     */
+    public String getSpamSensitivity() {
+        return sharedPreferences.getString(KEY_SPAM_SENSITIVITY, "CONSERVATIVE");
+    }
+
+    public void setSpamSensitivity(String sensitivity) {
+        sharedPreferences.edit().putString(KEY_SPAM_SENSITIVITY, sensitivity != null ? sensitivity : "CONSERVATIVE").apply();
+    }
 
     /**
      * Checks if Smart Inbox automatic categorization is enabled. Default true.
@@ -183,6 +243,83 @@ public class AppPreferences {
             return "";
         }
         return sharedPreferences.getString(PREFIX_THREAD_DRAFT + threadId, "");
+    }
+
+    public static final String KEY_NOTIFICATIONS_ENABLED = "pref_notifications_enabled";
+    public static final String KEY_NOTIFICATION_PRIVACY = "pref_notification_privacy";
+    public static final String KEY_NOTIFICATION_HIDE_OTP_LOCKSCREEN = "pref_notification_hide_otp_lockscreen";
+    public static final String KEY_NOTIFICATION_SHOW_SIM_BADGE = "pref_notification_show_sim_badge";
+    public static final String KEY_NOTIFICATION_VIBRATION = "pref_notification_vibration";
+    public static final String KEY_NOTIFICATION_SOUND = "pref_notification_sound";
+
+    /**
+     * Checks if notifications are globally enabled. Default true.
+     */
+    public boolean isNotificationsEnabled() {
+        return sharedPreferences.getBoolean(KEY_NOTIFICATIONS_ENABLED, true);
+    }
+
+    public void setNotificationsEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_NOTIFICATIONS_ENABLED, enabled).apply();
+    }
+
+    /**
+     * Returns notification privacy level: "FULL", "HIDE_BODY", or "HIDE_ALL". Default "FULL".
+     */
+    public String getNotificationPrivacy() {
+        return sharedPreferences.getString(KEY_NOTIFICATION_PRIVACY, "FULL");
+    }
+
+    public void setNotificationPrivacy(String privacy) {
+        sharedPreferences.edit().putString(KEY_NOTIFICATION_PRIVACY, privacy != null ? privacy : "FULL").apply();
+    }
+
+    /**
+     * Checks if OTP content should be hidden on lock screen. Default true.
+     */
+    public boolean isHideOtpOnLockscreenEnabled() {
+        return sharedPreferences.getBoolean(KEY_NOTIFICATION_HIDE_OTP_LOCKSCREEN, true);
+    }
+
+    public void setHideOtpOnLockscreenEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_NOTIFICATION_HIDE_OTP_LOCKSCREEN, enabled).apply();
+    }
+
+    /**
+     * Checks if SIM badge should be displayed in notifications on Dual SIM devices. Default true.
+     */
+    public boolean isShowSimBadgeInNotifications() {
+        return sharedPreferences.getBoolean(KEY_NOTIFICATION_SHOW_SIM_BADGE, true);
+    }
+
+    public void setShowSimBadgeInNotifications(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_NOTIFICATION_SHOW_SIM_BADGE, enabled).apply();
+    }
+
+    /**
+     * Checks if vibration is enabled for notifications. Default true.
+     */
+    public boolean isNotificationVibrationEnabled() {
+        return sharedPreferences.getBoolean(KEY_NOTIFICATION_VIBRATION, true);
+    }
+
+    public void setNotificationVibrationEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_NOTIFICATION_VIBRATION, enabled).apply();
+    }
+
+    /**
+     * Gets custom notification sound URI string, or null for system default.
+     */
+    public String getNotificationSoundUri() {
+        return sharedPreferences.getString(KEY_NOTIFICATION_SOUND, null);
+    }
+
+    public void setNotificationSoundUri(String uriString) {
+        if (uriString == null) {
+            sharedPreferences.edit().remove(KEY_NOTIFICATION_SOUND).apply();
+        } else {
+            sharedPreferences.edit().putString(KEY_NOTIFICATION_SOUND, uriString).apply();
+        }
     }
 
     /**

@@ -3,6 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/action_pin"
+        android:icon="@drawable/ic_pin"
+        android:title="@string/action_pin"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_archive"
+        android:icon="@drawable/ic_archive"
+        android:title="@string/action_archive"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/action_mark_read"
         android:icon="@drawable/ic_mark_chat_read"
         android:title="@string/action_mark_read"
@@ -15,10 +27,20 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/action_block"
+        android:title="@string/action_block"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_report_spam"
+        android:title="@string/action_report_spam"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_move_category"
         android:icon="@drawable/ic_category_other"
         android:title="@string/action_change_category"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 
     <item
         android:id="@+id/action_select_all"

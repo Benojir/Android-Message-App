@@ -107,6 +107,8 @@ public class MmsDeliverReceiver extends BroadcastReceiver {
                 MmsDownloadManager.getInstance(context).downloadMms(mmsId, threadId, contentLocation, subId, sender);
             } else {
                 Log.i(TAG, "MMS " + mmsId + " marked as pending manual download.");
+                com.nextgen.messages.notification.MessageNotificationManager.getInstance(context)
+                        .notifyMmsPendingDownload(threadId, sender, System.currentTimeMillis(), subId, "MMS_" + mmsId);
             }
 
             // 4. Notify content observers to refresh UI

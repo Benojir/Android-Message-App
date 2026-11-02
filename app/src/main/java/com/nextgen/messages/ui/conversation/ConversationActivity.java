@@ -30,9 +30,12 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.nextgen.messages.R;
 import com.nextgen.messages.data.model.ContactInfo;
+import com.nextgen.messages.data.model.MessageListItem;
 import com.nextgen.messages.data.model.SmsMessage;
 import com.nextgen.messages.data.repository.ContactRepository;
+import com.nextgen.messages.data.repository.ConversationMetadataRepository;
 import com.nextgen.messages.data.repository.SmsRepository;
+import com.nextgen.messages.notification.MessageNotificationManager;
 import com.nextgen.messages.databinding.ActivityConversationBinding;
 import com.nextgen.messages.telephony.SimInfo;
 import com.nextgen.messages.telephony.SimManager;
@@ -68,6 +71,7 @@ public class ConversationActivity extends AppCompatActivity {
     public static final String EXTRA_THREAD_ID = "com.nextgen.messages.extra.THREAD_ID";
     public static final String EXTRA_ADDRESS = "com.nextgen.messages.extra.ADDRESS";
     public static final String EXTRA_DISPLAY_NAME = "com.nextgen.messages.extra.DISPLAY_NAME";
+    public static final String EXTRA_HIGHLIGHT_MESSAGE_KEY = "extra_highlight_message_key";
 
     private ActivityConversationBinding binding;
     private ConversationViewModel viewModel;
@@ -86,6 +90,8 @@ public class ConversationActivity extends AppCompatActivity {
     private String address;
     @Nullable
     private String displayName;
+    @Nullable
+    private String highlightMessageKey;
 
     @Nullable
     private SimInfo selectedSim;
@@ -140,6 +146,7 @@ public class ConversationActivity extends AppCompatActivity {
             threadId = getIntent().getLongExtra(EXTRA_THREAD_ID, -1L);
             address = getIntent().getStringExtra(EXTRA_ADDRESS);
             displayName = getIntent().getStringExtra(EXTRA_DISPLAY_NAME);
+            highlightMessageKey = getIntent().getStringExtra(EXTRA_HIGHLIGHT_MESSAGE_KEY);
         }
     }
 
@@ -208,6 +215,18 @@ public class ConversationActivity extends AppCompatActivity {
         if (id == R.id.action_call) {
             onCallContactClicked();
             return true;
+        } else if (id == R.id.action_mute_conversation) {
+            showMuteDialog();
+            return true;
+        } else if (id == R.id.action_archive_conversation) {
+            onArchiveConversationClicked();
+            return true;
+        } else if (id == R.id.action_block_sender) {
+            onBlockSenderClicked();
+            return true;
+        } else if (id == R.id.action_report_spam) {
+            onReportSpamClicked();
+            return true;
         } else if (id == R.id.action_view_contact) {
             onViewContactClicked();
             return true;
@@ -231,7 +250,11 @@ public class ConversationActivity extends AppCompatActivity {
 
     private boolean onSelectionMenuItemClick(@NonNull MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_copy) {
+        if (id == R.id.action_star) {
+            viewModel.toggleStarForSelected(messageAdapter.getSelectedIds());
+            clearSelection();
+            return true;
+        } else if (id == R.id.action_copy) {
             onCopySelectedMessages();
             return true;
         } else if (id == R.id.action_forward) {
@@ -253,6 +276,12 @@ public class ConversationActivity extends AppCompatActivity {
 
     private void setupRecyclerView() {
         messageAdapter = new MessageAdapter(this::onRetryMessageRequested);
+        if (highlightMessageKey != null) {
+            messageAdapter.setHighlightedMessageKey(highlightMessageKey);
+        }
+        messageAdapter.setOnLinkClickListener((url, isSuspicious, reason) -> {
+            showSafeLinkConfirmationDialog(url, isSuspicious, reason);
+        });
         messageAdapter.setOnMessageClickListener((message, position) -> updateSelectionUI());
         messageAdapter.setOnMessageLongClickListener((message, position) -> updateSelectionUI());
         messageAdapter.setOnAttachmentClickListener(new MessageAdapter.OnAttachmentClickListener() {
@@ -873,11 +902,156 @@ public class ConversationActivity extends AppCompatActivity {
             boolean wasNearBottom = lm != null && lm.findLastVisibleItemPosition() >= messageAdapter.getItemCount() - 2;
 
             messageAdapter.submitList(items, () -> {
-                if (items != null && !items.isEmpty() && wasNearBottom) {
+                if (highlightMessageKey != null && items != null) {
+                    for (int i = 0; i < items.size(); i++) {
+                        MessageListItem item = items.get(i);
+                        if (item instanceof MessageListItem.MessageItem) {
+                            SmsMessage msg = ((MessageListItem.MessageItem) item).getMessage();
+                            if (highlightMessageKey.equals(msg.getMessageKey())) {
+                                binding.rvMessages.scrollToPosition(i);
+                                break;
+                            }
+                        }
+                    }
+                } else if (items != null && !items.isEmpty() && wasNearBottom) {
                     binding.rvMessages.scrollToPosition(items.size() - 1);
                 }
             });
         });
+
+        binding.btnNotSpam.setOnClickListener(v -> {
+            ConversationMetadataRepository.getInstance(this).markNotSpam(threadId, address, () -> {
+                Toast.makeText(this, R.string.toast_marked_not_spam, Toast.LENGTH_SHORT).show();
+                binding.cardSpamBanner.setVisibility(View.GONE);
+            });
+        });
+
+        if (threadId > 0) {
+            AppExecutors.getInstance().diskIO().execute(() -> {
+                boolean isSpam = ConversationMetadataRepository.getInstance(this).getOrCreateMetadata(threadId).isSpam();
+                AppExecutors.getInstance().mainThread().execute(() -> {
+                    if (binding != null) {
+                        binding.cardSpamBanner.setVisibility(isSpam ? View.VISIBLE : View.GONE);
+                    }
+                });
+            });
+        }
+
+    }
+
+
+    private void showMuteDialog() {
+        if (threadId <= 0) return;
+        boolean isMuted = ConversationMetadataRepository.getInstance(this).isConversationMuted(threadId);
+        if (isMuted) {
+            ConversationMetadataRepository.getInstance(this).unmuteConversation(threadId, () -> {
+                Toast.makeText(this, R.string.toast_conversation_unmuted, Toast.LENGTH_SHORT).show();
+            });
+            return;
+        }
+
+        String[] options = new String[]{
+                getString(R.string.mute_duration_1_hour),
+                getString(R.string.mute_duration_8_hours),
+                getString(R.string.mute_duration_24_hours),
+                getString(R.string.mute_duration_indefinite)
+        };
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_mute_title)
+                .setItems(options, (dialog, which) -> {
+                    long durationMillis;
+                    switch (which) {
+                        case 0:
+                            durationMillis = 3600_000L;
+                            break;
+                        case 1:
+                            durationMillis = 8 * 3600_000L;
+                            break;
+                        case 2:
+                            durationMillis = 24 * 3600_000L;
+                            break;
+                        case 3:
+                        default:
+                            durationMillis = Long.MAX_VALUE;
+                            break;
+                    }
+                    ConversationMetadataRepository.getInstance(this).muteConversation(threadId, durationMillis, () -> {
+                        Toast.makeText(this, R.string.toast_conversation_muted, Toast.LENGTH_SHORT).show();
+                    });
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void onArchiveConversationClicked() {
+        if (threadId <= 0) return;
+        ConversationMetadataRepository.getInstance(this).setArchived(threadId, true, () -> {
+            Toast.makeText(this, R.string.toast_archived, Toast.LENGTH_SHORT).show();
+            finish();
+        });
+    }
+
+    private void onBlockSenderClicked() {
+        if (address == null || address.trim().isEmpty()) return;
+        String display = (displayName != null && !displayName.isEmpty()) ? displayName : address;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(getString(R.string.dialog_block_title, display))
+                .setMessage(R.string.dialog_block_message)
+                .setPositiveButton(R.string.action_block, (d, w) -> {
+                    ConversationMetadataRepository.getInstance(this).blockConversation(threadId, address, () -> {
+                        Toast.makeText(this, R.string.toast_sender_blocked, Toast.LENGTH_SHORT).show();
+                        finish();
+                    });
+                })
+                .setNegativeButton(R.string.dialog_button_cancel, null)
+                .show();
+    }
+
+    private void onReportSpamClicked() {
+        if (threadId <= 0) return;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_report_spam_title)
+                .setMessage(R.string.dialog_report_spam_message)
+                .setPositiveButton(R.string.action_report_spam, (d, w) -> {
+                    ConversationMetadataRepository.getInstance(this).reportSpam(threadId, address, () -> {
+                        Toast.makeText(this, R.string.toast_sender_blocked, Toast.LENGTH_SHORT).show();
+                        finish();
+                    });
+                })
+                .setNegativeButton(R.string.dialog_button_cancel, null)
+                .show();
+    }
+
+    private void showSafeLinkConfirmationDialog(@NonNull String url, boolean isSuspicious, @Nullable String reason) {
+        String title = getString(R.string.dialog_safe_link_title);
+        String message = getString(R.string.dialog_safe_link_message, url);
+        if (isSuspicious && reason != null && !reason.trim().isEmpty()) {
+            message = reason + "\n\n" + message;
+        }
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(title)
+                .setMessage(message)
+                .setIcon(isSuspicious ? R.drawable.ic_warning : R.drawable.ic_link)
+                .setPositiveButton(R.string.action_open_link, (d, w) -> {
+                    try {
+                        String target = url.startsWith("http://") || url.startsWith("https://") ? url : "http://" + url;
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(target));
+                        startActivity(browserIntent);
+                    } catch (Exception e) {
+                        Toast.makeText(this, "Unable to open browser: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNeutralButton(R.string.action_copy_link, (d, w) -> {
+                    ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (cm != null) {
+                        cm.setPrimaryClip(ClipData.newPlainText("URL", url));
+                        Toast.makeText(this, "Link copied to clipboard", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton(R.string.dialog_button_cancel, null)
+                .show();
     }
 
     @Override
@@ -896,6 +1070,8 @@ public class ConversationActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        MessageNotificationManager.setCurrentActiveThreadId(threadId);
+        MessageNotificationManager.getInstance(this).cancelConversationNotification(threadId);
         updateRoleStatusUI();
         if (viewModel != null) {
             viewModel.refresh();
@@ -907,6 +1083,7 @@ public class ConversationActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        MessageNotificationManager.setCurrentActiveThreadId(-1L);
         saveDraft();
     }
 

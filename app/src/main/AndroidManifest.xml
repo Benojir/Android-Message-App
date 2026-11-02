@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:name=".NextGenApp"
@@ -133,6 +134,40 @@
 
         <activity
             android:name=".ui.viewers.VideoViewerActivity"
+            android:exported="false" />
+
+        <!-- Advanced Features Activities (Step 8) -->
+        <activity
+            android:name=".ui.archived.ArchivedActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.main.MainActivity" />
+
+        <activity
+            android:name=".ui.starred.StarredMessagesActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.main.MainActivity" />
+
+        <activity
+            android:name=".ui.blocked.BlockedSendersActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.main.MainActivity" />
+
+        <activity
+            android:name=".ui.spam.SpamBlockedActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.main.MainActivity" />
+
+        <!-- Notification Receivers (Step 9) -->
+        <receiver
+            android:name=".notification.QuickReplyReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".notification.MarkAsReadReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".notification.NotificationDismissReceiver"
             android:exported="false" />
 
     </application>

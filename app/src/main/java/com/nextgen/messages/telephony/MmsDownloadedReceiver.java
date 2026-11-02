@@ -55,6 +55,12 @@ public class MmsDownloadedReceiver extends BroadcastReceiver {
                         storageManager.updateDownloadedMms(mmsId, threadId, (RetrieveConf) genericPdu, sender);
                         Log.i(TAG, "MMS " + mmsId + " successfully downloaded, parsed, and saved.");
 
+                        // Step 8: Auto-unarchive thread if enabled
+                        if (threadId > 0) {
+                            com.nextgen.messages.data.repository.ConversationMetadataRepository.getInstance(context)
+                                    .checkAndAutoUnarchive(threadId);
+                        }
+
                         if (com.nextgen.messages.data.local.AppPreferences.getInstance(context).isSmartInboxEnabled()) {
                             try {
                                 java.util.List<com.nextgen.messages.data.model.SmsMessage> msgs = storageManager.getMmsMessagesForThread(threadId);
@@ -67,6 +73,32 @@ public class MmsDownloadedReceiver extends BroadcastReceiver {
                             } catch (Exception ex) {
                                 Log.w(TAG, "Failed to classify downloaded MMS: " + ex.getMessage());
                             }
+                        }
+
+                        // Step 9: Post real-time incoming MMS notification
+                        try {
+                            java.util.List<com.nextgen.messages.data.model.SmsMessage> msgs = storageManager.getMmsMessagesForThread(threadId);
+                            com.nextgen.messages.data.model.SmsMessage targetMsg = null;
+                            for (com.nextgen.messages.data.model.SmsMessage m : msgs) {
+                                if (m.getId() == mmsId) {
+                                    targetMsg = m;
+                                    break;
+                                }
+                            }
+                            if (targetMsg != null) {
+                                com.nextgen.messages.notification.MessageNotificationManager.getInstance(context)
+                                        .notifyIncomingMms(
+                                                threadId,
+                                                targetMsg.getAddress(),
+                                                targetMsg.getSubject(),
+                                                targetMsg.getAttachments(),
+                                                targetMsg.getDate(),
+                                                targetMsg.getSubscriptionId(),
+                                                "MMS_" + mmsId
+                                        );
+                            }
+                        } catch (Exception ex) {
+                            Log.e(TAG, "Failed to post incoming MMS notification: " + ex.getMessage());
                         }
                     } else {
                         Log.e(TAG, "Downloaded PDU is not RetrieveConf: " + (genericPdu != null ? genericPdu.getClass().getSimpleName() : "null"));

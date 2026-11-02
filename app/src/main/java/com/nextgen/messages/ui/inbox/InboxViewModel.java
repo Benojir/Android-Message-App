@@ -8,23 +8,31 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import com.nextgen.messages.data.local.AppPreferences;
 import com.nextgen.messages.data.model.Conversation;
+import com.nextgen.messages.data.repository.ConversationMetadataRepository;
 import com.nextgen.messages.data.repository.SmsRepository;
+import com.nextgen.messages.smartinbox.SmartInboxRepository;
+import com.nextgen.messages.smartinbox.db.ConversationMetadataEntity;
+import com.nextgen.messages.utils.AppExecutors;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * ViewModel managing the Inbox state, querying real SMS conversations,
- * handling search queries, permission status, and multi-conversation management.
+ * handling search queries, permission status, smart category filtering,
+ * pinned conversations ordering, archive filtering, spam exclusion, and bulk management.
  */
 public class InboxViewModel extends AndroidViewModel {
 
     private final SmsRepository smsRepository;
-    private final com.nextgen.messages.smartinbox.SmartInboxRepository smartInboxRepository;
-    private final com.nextgen.messages.data.local.AppPreferences appPreferences;
+    private final SmartInboxRepository smartInboxRepository;
+    private final ConversationMetadataRepository metadataRepository;
+    private final AppPreferences appPreferences;
     private final Handler searchHandler = new Handler(Looper.getMainLooper());
     private Runnable searchRunnable;
 
@@ -38,12 +46,14 @@ public class InboxViewModel extends AndroidViewModel {
     private final Set<Long> pendingDeletedThreadIds = new HashSet<>();
     private final Set<Long> categoryFilteredThreadIds = new HashSet<>();
     private List<Conversation> rawConversations = Collections.emptyList();
+    private boolean unknownSenderFilterEnabled = false;
 
     public InboxViewModel(@NonNull Application application) {
         super(application);
         this.smsRepository = SmsRepository.getInstance(application);
-        this.smartInboxRepository = com.nextgen.messages.smartinbox.SmartInboxRepository.getInstance(application);
-        this.appPreferences = com.nextgen.messages.data.local.AppPreferences.getInstance(application);
+        this.smartInboxRepository = SmartInboxRepository.getInstance(application);
+        this.metadataRepository = ConversationMetadataRepository.getInstance(application);
+        this.appPreferences = AppPreferences.getInstance(application);
         checkPermissionAndLoad();
     }
 
@@ -65,6 +75,15 @@ public class InboxViewModel extends AndroidViewModel {
 
     public LiveData<String> getErrorMessage() {
         return errorMessage;
+    }
+
+    public boolean isUnknownSenderFilterEnabled() {
+        return unknownSenderFilterEnabled;
+    }
+
+    public void setUnknownSenderFilter(boolean enabled) {
+        this.unknownSenderFilterEnabled = enabled;
+        publishFilteredConversations();
     }
 
     /**
@@ -110,7 +129,7 @@ public class InboxViewModel extends AndroidViewModel {
                 rawConversations = result != null ? result : Collections.emptyList();
 
                 if (appPreferences.isSmartInboxEnabled() && !appPreferences.isInitialScanCompleted()) {
-                    smartInboxRepository.scanAndClassifyExistingMessages(new com.nextgen.messages.smartinbox.SmartInboxRepository.ScanProgressListener() {
+                    smartInboxRepository.scanAndClassifyExistingMessages(new SmartInboxRepository.ScanProgressListener() {
                         @Override
                         public void onProgress(int processed, int total) {}
 
@@ -177,25 +196,6 @@ public class InboxViewModel extends AndroidViewModel {
             public void onSuccess(List<Conversation> result) {
                 isLoading.setValue(false);
                 rawConversations = result != null ? result : Collections.emptyList();
-
-                if (appPreferences.isSmartInboxEnabled() && !appPreferences.isInitialScanCompleted()) {
-                    smartInboxRepository.scanAndClassifyExistingMessages(new com.nextgen.messages.smartinbox.SmartInboxRepository.ScanProgressListener() {
-                        @Override
-                        public void onProgress(int processed, int total) {}
-
-                        @Override
-                        public void onCompleted(int totalClassified) {
-                            appPreferences.setInitialScanCompleted(true);
-                            String cat = selectedCategory.getValue();
-                            if (cat != null && !"all".equals(cat)) {
-                                setSelectedCategory(cat);
-                            }
-                        }
-
-                        @Override
-                        public void onError(Throwable error) {}
-                    });
-                }
 
                 String currentCat = selectedCategory.getValue();
                 if (currentCat != null && !"all".equals(currentCat)) {
@@ -310,30 +310,130 @@ public class InboxViewModel extends AndroidViewModel {
             categoryFilteredThreadIds.clear();
             publishFilteredConversations();
         } else {
-            com.nextgen.messages.utils.AppExecutors.getInstance().diskIO().execute(() -> {
+            AppExecutors.getInstance().diskIO().execute(() -> {
                 List<Long> threadIds = smartInboxRepository.getThreadIdsForCategory(clean);
                 categoryFilteredThreadIds.clear();
                 categoryFilteredThreadIds.addAll(threadIds);
-                com.nextgen.messages.utils.AppExecutors.getInstance().mainThread().execute(this::publishFilteredConversations);
+                AppExecutors.getInstance().mainThread().execute(this::publishFilteredConversations);
             });
         }
     }
 
-    private void publishFilteredConversations() {
-        String cat = selectedCategory.getValue();
-        boolean filterCategory = cat != null && !"all".equals(cat);
+    public void togglePinConversations(@NonNull Set<Long> threadIds, @Nullable Runnable onComplete) {
+        AppExecutors.getInstance().diskIO().execute(() -> {
+            Map<Long, ConversationMetadataEntity> map = metadataRepository.getMetadataMapSync();
+            boolean anyUnpinned = false;
+            for (Long id : threadIds) {
+                ConversationMetadataEntity meta = map.get(id);
+                if (meta == null || !meta.isPinned()) {
+                    anyUnpinned = true;
+                    break;
+                }
+            }
+            for (Long id : threadIds) {
+                metadataRepository.setPinned(id, anyUnpinned, null);
+            }
+            AppExecutors.getInstance().mainThread().execute(() -> {
+                publishFilteredConversations();
+                if (onComplete != null) onComplete.run();
+            });
+        });
+    }
 
-        List<Conversation> filtered = new ArrayList<>();
-        for (Conversation conv : rawConversations) {
-            if (pendingDeletedThreadIds.contains(conv.getThreadId())) {
-                continue;
+    public void archiveConversations(@NonNull Set<Long> threadIds, @Nullable Runnable onComplete) {
+        AppExecutors.getInstance().diskIO().execute(() -> {
+            for (Long id : threadIds) {
+                metadataRepository.setArchived(id, true, null);
             }
-            if (filterCategory && !categoryFilteredThreadIds.contains(conv.getThreadId())) {
-                continue;
+            AppExecutors.getInstance().mainThread().execute(() -> {
+                publishFilteredConversations();
+                if (onComplete != null) onComplete.run();
+            });
+        });
+    }
+
+    public void blockSelectedConversations(@NonNull List<Conversation> selected, @Nullable Runnable onComplete) {
+        AppExecutors.getInstance().diskIO().execute(() -> {
+            for (Conversation c : selected) {
+                metadataRepository.blockConversation(c.getThreadId(), c.getAddress(), null);
             }
-            filtered.add(conv);
-        }
-        conversations.setValue(filtered);
+            AppExecutors.getInstance().mainThread().execute(() -> {
+                publishFilteredConversations();
+                if (onComplete != null) onComplete.run();
+            });
+        });
+    }
+
+    public void reportSpamSelectedConversations(@NonNull List<Conversation> selected, @Nullable Runnable onComplete) {
+        AppExecutors.getInstance().diskIO().execute(() -> {
+            for (Conversation c : selected) {
+                metadataRepository.reportSpam(c.getThreadId(), c.getAddress(), null);
+            }
+            AppExecutors.getInstance().mainThread().execute(() -> {
+                publishFilteredConversations();
+                if (onComplete != null) onComplete.run();
+            });
+        });
+    }
+
+    private void publishFilteredConversations() {
+        AppExecutors.getInstance().diskIO().execute(() -> {
+            String cat = selectedCategory.getValue();
+            boolean filterCategory = cat != null && !"all".equals(cat);
+            Map<Long, ConversationMetadataEntity> metaMap = metadataRepository.getMetadataMapSync();
+
+            List<Conversation> pinnedList = new ArrayList<>();
+            List<Conversation> unpinnedList = new ArrayList<>();
+
+            for (Conversation conv : rawConversations) {
+                long threadId = conv.getThreadId();
+                if (pendingDeletedThreadIds.contains(threadId)) {
+                    continue;
+                }
+                if (filterCategory && !categoryFilteredThreadIds.contains(threadId)) {
+                    continue;
+                }
+
+                ConversationMetadataEntity meta = metaMap.get(threadId);
+                boolean isPinned = meta != null && meta.isPinned();
+                long pinnedAt = meta != null ? meta.getPinnedAt() : 0L;
+                boolean isArchived = meta != null && meta.isArchived();
+                long archivedAt = meta != null ? meta.getArchivedAt() : 0L;
+                boolean isBlocked = meta != null && meta.isBlocked();
+                boolean isSpam = meta != null && meta.isSpam();
+                long mutedUntil = meta != null ? meta.getMutedUntil() : 0L;
+                boolean isSilent = meta != null && meta.isSilent();
+
+                // Main inbox excludes archived, spam, and blocked conversations
+                if (isArchived || isSpam || isBlocked) {
+                    continue;
+                }
+
+                if (unknownSenderFilterEnabled) {
+                    if (conv.getContactName() != null && !conv.getContactName().trim().isEmpty()) {
+                        continue;
+                    }
+                }
+
+                Conversation enriched = conv.withMetadata(isPinned, pinnedAt, isArchived, archivedAt, isBlocked, isSpam, mutedUntil, isSilent);
+                if (isPinned) {
+                    pinnedList.add(enriched);
+                } else {
+                    unpinnedList.add(enriched);
+                }
+            }
+
+            // Sort pinned by latest date descending
+            Collections.sort(pinnedList, (c1, c2) -> Long.compare(c2.getDate(), c1.getDate()));
+            // Sort unpinned by latest date descending
+            Collections.sort(unpinnedList, (c1, c2) -> Long.compare(c2.getDate(), c1.getDate()));
+
+            List<Conversation> combined = new ArrayList<>(pinnedList.size() + unpinnedList.size());
+            combined.addAll(pinnedList);
+            combined.addAll(unpinnedList);
+
+            AppExecutors.getInstance().mainThread().execute(() -> conversations.setValue(combined));
+        });
     }
 
     @Override

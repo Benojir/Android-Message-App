@@ -24,6 +24,9 @@ import com.nextgen.messages.telephony.SmsRoleManager;
 import com.nextgen.messages.data.local.AppPreferences;
 import com.nextgen.messages.mms.transport.MmsConfig;
 import com.nextgen.messages.utils.ThemeHelper;
+import com.nextgen.messages.notification.NotificationChannelManager;
+import com.nextgen.messages.notification.NotificationPrivacyManager;
+
 
 /**
  * SettingsFragment providing default SMS app management, theme preferences,
@@ -90,6 +93,8 @@ public class SettingsFragment extends Fragment {
         setupAppearanceSection();
         setupMmsSection();
         setupSmartInboxSection();
+        setupSpamSecuritySection();
+        setupNotificationsSection();
         setupGeneralSection();
         setupFutureSection();
         observeViewModel();
@@ -334,6 +339,72 @@ public class SettingsFragment extends Fragment {
         });
     }
 
+    private void setupSpamSecuritySection() {
+        AppPreferences prefs = AppPreferences.getInstance(requireContext());
+
+        // Toggle: Spam Protection
+        binding.switchSpamProtection.setChecked(prefs.isSpamProtectionEnabled());
+        binding.switchSpamProtection.setOnCheckedChangeListener((btn, isChecked) -> {
+            prefs.setSpamProtectionEnabled(isChecked);
+        });
+
+        // Toggle: Suspicious Links
+        binding.switchSuspiciousLinks.setChecked(prefs.isSuspiciousLinkWarningsEnabled());
+        binding.switchSuspiciousLinks.setOnCheckedChangeListener((btn, isChecked) -> {
+            prefs.setSuspiciousLinkWarningsEnabled(isChecked);
+        });
+
+        // Toggle: Auto-Unarchive
+        binding.switchAutoUnarchive.setChecked(prefs.isAutoUnarchiveEnabled());
+        binding.switchAutoUnarchive.setOnCheckedChangeListener((btn, isChecked) -> {
+            prefs.setAutoUnarchiveEnabled(isChecked);
+        });
+
+        // Sensitivity Dialog
+        updateSensitivitySummary(prefs.getSpamSensitivity());
+        binding.layoutSpamSensitivity.setOnClickListener(v -> {
+            CharSequence[] options = new CharSequence[]{
+                    getString(R.string.settings_spam_sensitivity_conservative),
+                    getString(R.string.settings_spam_sensitivity_balanced)
+            };
+            int checkedItem = "BALANCED".equalsIgnoreCase(prefs.getSpamSensitivity()) ? 1 : 0;
+            new MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(R.string.settings_spam_sensitivity_title)
+                    .setSingleChoiceItems(options, checkedItem, (dialog, which) -> {
+                        String selected = which == 1 ? "BALANCED" : "CONSERVATIVE";
+                        prefs.setSpamSensitivity(selected);
+                        updateSensitivitySummary(selected);
+                        dialog.dismiss();
+                    })
+                    .show();
+        });
+
+        // Screen links
+        binding.layoutBlockedSenders.setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), com.nextgen.messages.ui.blocked.BlockedSendersActivity.class));
+        });
+
+        binding.layoutSpamScreen.setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), com.nextgen.messages.ui.spam.SpamBlockedActivity.class));
+        });
+
+        binding.layoutArchivedScreen.setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), com.nextgen.messages.ui.archived.ArchivedActivity.class));
+        });
+
+        binding.layoutStarredScreen.setOnClickListener(v -> {
+            startActivity(new Intent(requireContext(), com.nextgen.messages.ui.starred.StarredMessagesActivity.class));
+        });
+    }
+
+    private void updateSensitivitySummary(String sensitivity) {
+        if ("BALANCED".equalsIgnoreCase(sensitivity)) {
+            binding.tvSpamSensitivityValue.setText(R.string.settings_spam_sensitivity_balanced);
+        } else {
+            binding.tvSpamSensitivityValue.setText(R.string.settings_spam_sensitivity_conservative);
+        }
+    }
+
     private void setupGeneralSection() {
         binding.rowAbout.setOnClickListener(v -> new MaterialAlertDialogBuilder(requireContext())
                 .setTitle(R.string.about_dialog_title)
@@ -343,11 +414,6 @@ public class SettingsFragment extends Fragment {
     }
 
     private void setupFutureSection() {
-        binding.rowFutureNotifications.setOnClickListener(v -> showFutureFeatureDialog(
-                getString(R.string.settings_notifications_title),
-                getString(R.string.badge_phase4)
-        ));
-
         binding.rowFuturePrivacy.setOnClickListener(v -> showFutureFeatureDialog(
                 getString(R.string.settings_privacy_title),
                 getString(R.string.badge_phase5)
@@ -420,6 +486,88 @@ public class SettingsFragment extends Fragment {
                 binding.ivDefaultSmsStatus.setImageResource(R.drawable.ic_shield);
                 break;
         }
+    }
+
+
+    private void setupNotificationsSection() {
+        AppPreferences preferences = AppPreferences.getInstance(requireContext());
+
+        // Master notification toggle
+        binding.switchNotifications.setChecked(preferences.isNotificationsEnabled());
+        binding.switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            preferences.setNotificationsEnabled(isChecked);
+        });
+
+        // Privacy Level
+        updateNotificationPrivacySummary(preferences);
+        binding.rowNotificationPrivacy.setOnClickListener(v -> showNotificationPrivacyDialog(preferences));
+
+        // Hide OTP on lock screen
+        binding.switchHideOtpLockscreen.setChecked(preferences.isHideOtpOnLockscreenEnabled());
+        binding.switchHideOtpLockscreen.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            preferences.setHideOtpOnLockscreenEnabled(isChecked);
+        });
+
+        // Show SIM badge
+        binding.switchShowSimBadge.setChecked(preferences.isShowSimBadgeInNotifications());
+        binding.switchShowSimBadge.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            preferences.setShowSimBadgeInNotifications(isChecked);
+        });
+
+        // System Channel Settings
+        binding.rowSystemChannelSettings.setOnClickListener(v -> {
+            NotificationChannelManager.openAppNotificationSettings(requireContext());
+        });
+    }
+
+    private void updateNotificationPrivacySummary(@NonNull AppPreferences preferences) {
+        String level = preferences.getNotificationPrivacy();
+        if (NotificationPrivacyManager.PRIVACY_HIDE_ALL.equalsIgnoreCase(level)) {
+            binding.tvNotificationPrivacySummary.setText(R.string.settings_privacy_hide_all);
+        } else if (NotificationPrivacyManager.PRIVACY_HIDE_BODY.equalsIgnoreCase(level)) {
+            binding.tvNotificationPrivacySummary.setText(R.string.settings_privacy_hide_body);
+        } else {
+            binding.tvNotificationPrivacySummary.setText(R.string.settings_privacy_full);
+        }
+    }
+
+    private void showNotificationPrivacyDialog(@NonNull AppPreferences preferences) {
+        String current = preferences.getNotificationPrivacy();
+        int selectedIndex = 0;
+        if (NotificationPrivacyManager.PRIVACY_HIDE_BODY.equalsIgnoreCase(current)) {
+            selectedIndex = 1;
+        } else if (NotificationPrivacyManager.PRIVACY_HIDE_ALL.equalsIgnoreCase(current)) {
+            selectedIndex = 2;
+        }
+
+        String[] options = new String[]{
+                getString(R.string.settings_privacy_full),
+                getString(R.string.settings_privacy_hide_body),
+                getString(R.string.settings_privacy_hide_all)
+        };
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle(R.string.settings_notification_privacy_title)
+                .setSingleChoiceItems(options, selectedIndex, (dialog, which) -> {
+                    String chosen;
+                    switch (which) {
+                        case 1:
+                            chosen = NotificationPrivacyManager.PRIVACY_HIDE_BODY;
+                            break;
+                        case 2:
+                            chosen = NotificationPrivacyManager.PRIVACY_HIDE_ALL;
+                            break;
+                        case 0:
+                        default:
+                            chosen = NotificationPrivacyManager.PRIVACY_FULL;
+                            break;
+                    }
+                    preferences.setNotificationPrivacy(chosen);
+                    updateNotificationPrivacySummary(preferences);
+                    dialog.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     @Override

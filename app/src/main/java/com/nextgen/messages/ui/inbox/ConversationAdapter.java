@@ -143,6 +143,8 @@ public class ConversationAdapter extends ListAdapter<Conversation, ConversationA
             binding.tvTitle.setText(item.getTitle());
             binding.tvSnippet.setText(item.getDisplaySnippet());
             binding.tvTimestamp.setText(DateFormatter.formatConversationTime(item.getDate()));
+            binding.ivPin.setVisibility(item.isPinned() ? View.VISIBLE : View.GONE);
+            binding.ivMute.setVisibility(item.isCurrentlyMuted() ? View.VISIBLE : View.GONE);
 
             // Unread treatment
             if (item.hasUnread()) {

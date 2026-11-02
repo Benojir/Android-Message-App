@@ -9,10 +9,15 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
@@ -27,6 +32,7 @@ import com.nextgen.messages.databinding.ItemMessageIncomingBinding;
 import com.nextgen.messages.databinding.ItemMessageMmsIncomingBinding;
 import com.nextgen.messages.databinding.ItemMessageMmsOutgoingBinding;
 import com.nextgen.messages.databinding.ItemMessageOutgoingBinding;
+import com.nextgen.messages.security.SuspiciousLinkAnalyzer;
 import com.nextgen.messages.utils.AppExecutors;
 import com.nextgen.messages.utils.DateFormatter;
 import java.io.InputStream;
@@ -39,7 +45,8 @@ import java.util.Set;
 /**
  * Multi-type ListAdapter rendering date headers, incoming/outgoing SMS bubbles,
  * and incoming/outgoing multimedia MMS bubbles with media previews, audio playback,
- * manual download buttons, and multi-selection support.
+ * manual download buttons, multi-selection support, and Step 8 enrichment
+ * (star badges, suspicious link warnings, safe link opening, and flash highlight).
  */
 public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.ViewHolder> {
 
@@ -62,6 +69,14 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
 
     public interface OnDownloadMmsListener {
         void onDownloadMms(@NonNull SmsMessage message);
+    }
+
+    public interface OnLinkClickListener {
+        void onLinkClicked(@NonNull String url, boolean isSuspicious, @Nullable String reason);
+    }
+
+    public interface OnDismissWarningListener {
+        void onDismissWarning(@NonNull SmsMessage message);
     }
 
     private static final DiffUtil.ItemCallback<MessageListItem> DIFF_CALLBACK = new DiffUtil.ItemCallback<MessageListItem>() {
@@ -87,8 +102,14 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
     private OnAttachmentClickListener attachmentClickListener;
     @Nullable
     private OnDownloadMmsListener downloadMmsListener;
+    @Nullable
+    private OnLinkClickListener linkClickListener;
+    @Nullable
+    private OnDismissWarningListener dismissWarningListener;
 
     private final Set<Long> selectedIds = new HashSet<>();
+    @Nullable
+    private String highlightedMessageKey;
 
     // Shared inline audio player state
     @Nullable
@@ -124,6 +145,35 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
         this.downloadMmsListener = listener;
     }
 
+    public void setOnLinkClickListener(@Nullable OnLinkClickListener listener) {
+        this.linkClickListener = listener;
+    }
+
+    public void setOnDismissWarningListener(@Nullable OnDismissWarningListener listener) {
+        this.dismissWarningListener = listener;
+    }
+
+    public void setHighlightedMessageKey(@Nullable String key) {
+        this.highlightedMessageKey = key;
+        notifyDataSetChanged();
+    }
+
+    public int getPositionForMessageKey(@Nullable String key) {
+        if (key == null || key.trim().isEmpty()) {
+            return -1;
+        }
+        for (int i = 0; i < getItemCount(); i++) {
+            MessageListItem item = getItem(i);
+            if (item instanceof MessageListItem.MessageItem) {
+                SmsMessage msg = ((MessageListItem.MessageItem) item).getMessage();
+                if (key.equals(msg.getMessageKey())) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
     @Override
     public long getItemId(int position) {
         return getItem(position).getItemId();
@@ -138,6 +188,10 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
         return !selectedIds.isEmpty();
     }
 
+    public int getSelectedItemCount() {
+        return selectedIds.size();
+    }
+
     public int getSelectedCount() {
         return selectedIds.size();
     }
@@ -147,8 +201,19 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
         return Collections.unmodifiableSet(selectedIds);
     }
 
-    public boolean isSelected(long compositeId) {
-        return selectedIds.contains(compositeId);
+    @NonNull
+    public List<SmsMessage> getSelectedMessages() {
+        List<SmsMessage> list = new ArrayList<>();
+        for (int i = 0; i < getItemCount(); i++) {
+            MessageListItem item = getItem(i);
+            if (item instanceof MessageListItem.MessageItem) {
+                SmsMessage msg = ((MessageListItem.MessageItem) item).getMessage();
+                if (selectedIds.contains(msg.getCompositeId())) {
+                    list.add(msg);
+                }
+            }
+        }
+        return list;
     }
 
     public void toggleSelection(long compositeId) {
@@ -176,21 +241,6 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
             selectedIds.clear();
             notifyDataSetChanged();
         }
-    }
-
-    @NonNull
-    public List<SmsMessage> getSelectedMessages() {
-        List<SmsMessage> result = new ArrayList<>();
-        for (int i = 0; i < getItemCount(); i++) {
-            MessageListItem item = getItem(i);
-            if (item instanceof MessageListItem.MessageItem) {
-                SmsMessage msg = ((MessageListItem.MessageItem) item).getMessage();
-                if (selectedIds.contains(msg.getCompositeId())) {
-                    result.add(msg);
-                }
-            }
-        }
-        return result;
     }
 
     public static void stopAudioPlayback() {
@@ -222,19 +272,29 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
                 return new IncomingMmsViewHolder(
                         ItemMessageMmsIncomingBinding.inflate(inflater, parent, false),
                         attachmentClickListener,
-                        downloadMmsListener
+                        downloadMmsListener,
+                        linkClickListener
                 );
             case MessageListItem.TYPE_MMS_OUTGOING:
                 return new OutgoingMmsViewHolder(
                         ItemMessageMmsOutgoingBinding.inflate(inflater, parent, false),
                         attachmentClickListener,
-                        retryListener
+                        retryListener,
+                        linkClickListener
                 );
             case MessageListItem.TYPE_MESSAGE_OUTGOING:
-                return new OutgoingViewHolder(ItemMessageOutgoingBinding.inflate(inflater, parent, false), retryListener);
+                return new OutgoingViewHolder(
+                        ItemMessageOutgoingBinding.inflate(inflater, parent, false),
+                        retryListener,
+                        linkClickListener
+                );
             case MessageListItem.TYPE_MESSAGE_INCOMING:
             default:
-                return new IncomingViewHolder(ItemMessageIncomingBinding.inflate(inflater, parent, false));
+                return new IncomingViewHolder(
+                        ItemMessageIncomingBinding.inflate(inflater, parent, false),
+                        linkClickListener,
+                        dismissWarningListener
+                );
         }
     }
 
@@ -246,22 +306,26 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
         } else if (holder instanceof IncomingMmsViewHolder && item instanceof MessageListItem.MessageItem) {
             SmsMessage msg = ((MessageListItem.MessageItem) item).getMessage();
             boolean isSelected = selectedIds.contains(msg.getCompositeId());
-            ((IncomingMmsViewHolder) holder).bind(msg, isSelected);
+            boolean isHighlighted = msg.getMessageKey().equals(highlightedMessageKey);
+            ((IncomingMmsViewHolder) holder).bind(msg, isSelected, isHighlighted);
             setupItemInteractions(holder.itemView, msg, position);
         } else if (holder instanceof OutgoingMmsViewHolder && item instanceof MessageListItem.MessageItem) {
             SmsMessage msg = ((MessageListItem.MessageItem) item).getMessage();
             boolean isSelected = selectedIds.contains(msg.getCompositeId());
-            ((OutgoingMmsViewHolder) holder).bind(msg, isSelected);
+            boolean isHighlighted = msg.getMessageKey().equals(highlightedMessageKey);
+            ((OutgoingMmsViewHolder) holder).bind(msg, isSelected, isHighlighted);
             setupItemInteractions(holder.itemView, msg, position);
         } else if (holder instanceof IncomingViewHolder && item instanceof MessageListItem.MessageItem) {
             SmsMessage msg = ((MessageListItem.MessageItem) item).getMessage();
             boolean isSelected = selectedIds.contains(msg.getCompositeId());
-            ((IncomingViewHolder) holder).bind(msg, isSelected);
+            boolean isHighlighted = msg.getMessageKey().equals(highlightedMessageKey);
+            ((IncomingViewHolder) holder).bind(msg, isSelected, isHighlighted);
             setupItemInteractions(holder.itemView, msg, position);
         } else if (holder instanceof OutgoingViewHolder && item instanceof MessageListItem.MessageItem) {
             SmsMessage msg = ((MessageListItem.MessageItem) item).getMessage();
             boolean isSelected = selectedIds.contains(msg.getCompositeId());
-            ((OutgoingViewHolder) holder).bind(msg, isSelected);
+            boolean isHighlighted = msg.getMessageKey().equals(highlightedMessageKey);
+            ((OutgoingViewHolder) holder).bind(msg, isSelected, isHighlighted);
             setupItemInteractions(holder.itemView, msg, position);
         }
     }
@@ -302,23 +366,57 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
 
     static class IncomingViewHolder extends RecyclerView.ViewHolder {
         private final ItemMessageIncomingBinding binding;
+        @Nullable
+        private final OnLinkClickListener linkClickListener;
+        @Nullable
+        private final OnDismissWarningListener dismissWarningListener;
 
-        IncomingViewHolder(@NonNull ItemMessageIncomingBinding binding) {
+        IncomingViewHolder(
+                @NonNull ItemMessageIncomingBinding binding,
+                @Nullable OnLinkClickListener linkClickListener,
+                @Nullable OnDismissWarningListener dismissWarningListener
+        ) {
             super(binding.getRoot());
             this.binding = binding;
+            this.linkClickListener = linkClickListener;
+            this.dismissWarningListener = dismissWarningListener;
         }
 
-        void bind(@NonNull SmsMessage message, boolean isSelected) {
-            binding.tvMessageBody.setText(message.getDisplayBody());
+        void bind(@NonNull SmsMessage message, boolean isSelected, boolean isHighlighted) {
             binding.tvMessageTime.setText(DateFormatter.formatMessageBubbleTime(message.getDate()));
+
+            // Step 8: Star indicator
+            binding.ivStarred.setVisibility(message.isStarred() ? View.VISIBLE : View.GONE);
+
+            // Step 8: Suspicious link warning card
+            if (message.hasSuspiciousLink()) {
+                binding.layoutLinkWarning.setVisibility(View.VISIBLE);
+                binding.tvLinkWarningDesc.setText(
+                        message.getWarningReason() != null ? message.getWarningReason() : "Suspicious link detected"
+                );
+                binding.btnDismissLinkWarning.setOnClickListener(v -> {
+                    binding.layoutLinkWarning.setVisibility(View.GONE);
+                    if (dismissWarningListener != null) {
+                        dismissWarningListener.onDismissWarning(message);
+                    }
+                });
+            } else {
+                binding.layoutLinkWarning.setVisibility(View.GONE);
+            }
+
+            // Safe link detection
+            setupLinkableBody(binding.tvMessageBody, message.getDisplayBody(), message.hasSuspiciousLink(), message.getWarningReason(), linkClickListener);
 
             if (isSelected) {
                 itemView.setBackgroundColor(Color.parseColor("#331976D2"));
+            } else if (isHighlighted) {
+                itemView.setBackgroundColor(Color.parseColor("#4DFBC02D"));
             } else {
                 itemView.setBackgroundColor(Color.TRANSPARENT);
             }
 
             String contentDescription = (isSelected ? "Selected. " : "") +
+                    (message.isStarred() ? "Starred. " : "") +
                     "Incoming message: " + message.getDisplayBody() +
                     ", at " + DateFormatter.formatMessageBubbleTime(message.getDate());
             itemView.setContentDescription(contentDescription);
@@ -329,19 +427,31 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
         private final ItemMessageOutgoingBinding binding;
         @Nullable
         private final OnMessageRetryListener retryListener;
+        @Nullable
+        private final OnLinkClickListener linkClickListener;
 
-        OutgoingViewHolder(@NonNull ItemMessageOutgoingBinding binding, @Nullable OnMessageRetryListener retryListener) {
+        OutgoingViewHolder(
+                @NonNull ItemMessageOutgoingBinding binding,
+                @Nullable OnMessageRetryListener retryListener,
+                @Nullable OnLinkClickListener linkClickListener
+        ) {
             super(binding.getRoot());
             this.binding = binding;
             this.retryListener = retryListener;
+            this.linkClickListener = linkClickListener;
         }
 
-        void bind(@NonNull SmsMessage message, boolean isSelected) {
-            binding.tvMessageBody.setText(message.getDisplayBody());
+        void bind(@NonNull SmsMessage message, boolean isSelected, boolean isHighlighted) {
+            setupLinkableBody(binding.tvMessageBody, message.getDisplayBody(), false, null, linkClickListener);
             binding.tvMessageTime.setText(DateFormatter.formatMessageBubbleTime(message.getDate()));
+
+            // Step 8: Star indicator
+            binding.ivStarred.setVisibility(message.isStarred() ? View.VISIBLE : View.GONE);
 
             if (isSelected) {
                 itemView.setBackgroundColor(Color.parseColor("#331976D2"));
+            } else if (isHighlighted) {
+                itemView.setBackgroundColor(Color.parseColor("#4DFBC02D"));
             } else {
                 itemView.setBackgroundColor(Color.TRANSPARENT);
             }
@@ -368,6 +478,7 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
             }
 
             String contentDescription = (isSelected ? "Selected. " : "") +
+                    (message.isStarred() ? "Starred. " : "") +
                     "Outgoing message: " + message.getDisplayBody() +
                     (statusLabel.isEmpty() ? "" : ", status: " + statusLabel) +
                     ", at " + DateFormatter.formatMessageBubbleTime(message.getDate());
@@ -381,24 +492,33 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
         private final OnAttachmentClickListener attachmentClickListener;
         @Nullable
         private final OnDownloadMmsListener downloadMmsListener;
+        @Nullable
+        private final OnLinkClickListener linkClickListener;
 
         IncomingMmsViewHolder(
                 @NonNull ItemMessageMmsIncomingBinding binding,
                 @Nullable OnAttachmentClickListener attachmentClickListener,
-                @Nullable OnDownloadMmsListener downloadMmsListener
+                @Nullable OnDownloadMmsListener downloadMmsListener,
+                @Nullable OnLinkClickListener linkClickListener
         ) {
             super(binding.getRoot());
             this.binding = binding;
             this.attachmentClickListener = attachmentClickListener;
             this.downloadMmsListener = downloadMmsListener;
+            this.linkClickListener = linkClickListener;
         }
 
-        void bind(@NonNull SmsMessage message, boolean isSelected) {
+        void bind(@NonNull SmsMessage message, boolean isSelected, boolean isHighlighted) {
             if (isSelected) {
                 itemView.setBackgroundColor(Color.parseColor("#331976D2"));
+            } else if (isHighlighted) {
+                itemView.setBackgroundColor(Color.parseColor("#4DFBC02D"));
             } else {
                 itemView.setBackgroundColor(Color.TRANSPARENT);
             }
+
+            // Step 8: Star indicator
+            binding.ivStarred.setVisibility(message.isStarred() ? View.VISIBLE : View.GONE);
 
             // Sender name in Group MMS
             if (!message.getRecipients().isEmpty() && message.getAddress() != null) {
@@ -420,7 +540,7 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
             String body = message.getBody();
             if (body != null && !body.trim().isEmpty() && !body.equals(message.getSubject())) {
                 binding.tvMessageBody.setVisibility(View.VISIBLE);
-                binding.tvMessageBody.setText(body);
+                setupLinkableBody(binding.tvMessageBody, body, message.hasSuspiciousLink(), message.getWarningReason(), linkClickListener);
             } else {
                 binding.tvMessageBody.setVisibility(View.GONE);
             }
@@ -500,24 +620,33 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
         private final OnAttachmentClickListener attachmentClickListener;
         @Nullable
         private final OnMessageRetryListener retryListener;
+        @Nullable
+        private final OnLinkClickListener linkClickListener;
 
         OutgoingMmsViewHolder(
                 @NonNull ItemMessageMmsOutgoingBinding binding,
                 @Nullable OnAttachmentClickListener attachmentClickListener,
-                @Nullable OnMessageRetryListener retryListener
+                @Nullable OnMessageRetryListener retryListener,
+                @Nullable OnLinkClickListener linkClickListener
         ) {
             super(binding.getRoot());
             this.binding = binding;
             this.attachmentClickListener = attachmentClickListener;
             this.retryListener = retryListener;
+            this.linkClickListener = linkClickListener;
         }
 
-        void bind(@NonNull SmsMessage message, boolean isSelected) {
+        void bind(@NonNull SmsMessage message, boolean isSelected, boolean isHighlighted) {
             if (isSelected) {
                 itemView.setBackgroundColor(Color.parseColor("#331976D2"));
+            } else if (isHighlighted) {
+                itemView.setBackgroundColor(Color.parseColor("#4DFBC02D"));
             } else {
                 itemView.setBackgroundColor(Color.TRANSPARENT);
             }
+
+            // Step 8: Star indicator
+            binding.ivStarred.setVisibility(message.isStarred() ? View.VISIBLE : View.GONE);
 
             // Subject
             if (message.getSubject() != null && !message.getSubject().trim().isEmpty()) {
@@ -531,7 +660,7 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
             String body = message.getBody();
             if (body != null && !body.trim().isEmpty() && !body.equals(message.getSubject())) {
                 binding.tvMessageBody.setVisibility(View.VISIBLE);
-                binding.tvMessageBody.setText(body);
+                setupLinkableBody(binding.tvMessageBody, body, false, null, linkClickListener);
             } else {
                 binding.tvMessageBody.setVisibility(View.GONE);
             }
@@ -599,6 +728,38 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
                 bindAudioPlayer(message.getId(), first, binding.btnPlayAudio, binding.progressAudio, binding.tvAudioDuration);
             }
         }
+    }
+
+    private static void setupLinkableBody(
+            @NonNull TextView textView,
+            @NonNull String body,
+            boolean isSuspicious,
+            @Nullable String reason,
+            @Nullable OnLinkClickListener linkClickListener
+    ) {
+        List<String> urls = SuspiciousLinkAnalyzer.extractUrls(body);
+        if (urls.isEmpty() || linkClickListener == null) {
+            textView.setText(body);
+            textView.setMovementMethod(null);
+            return;
+        }
+
+        SpannableStringBuilder ssb = new SpannableStringBuilder(body);
+        for (String url : urls) {
+            int start = body.indexOf(url);
+            while (start >= 0) {
+                int end = start + url.length();
+                ssb.setSpan(new ClickableSpan() {
+                    @Override
+                    public void onClick(@NonNull View widget) {
+                        linkClickListener.onLinkClicked(url, isSuspicious, reason);
+                    }
+                }, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                start = body.indexOf(url, end);
+            }
+        }
+        textView.setText(ssb);
+        textView.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     private static void loadThumbnail(@NonNull ImageView imageView, @NonNull Uri uri) {

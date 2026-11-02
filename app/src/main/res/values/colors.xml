@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand Primary Colors (Light) -->
+    <color name="md_theme_primary">#00639C</color>
     <color name="md_theme_light_primary">#00639C</color>
     <color name="md_theme_light_onPrimary">#FFFFFF</color>
     <color name="md_theme_light_primaryContainer">#CEE5FF</color>

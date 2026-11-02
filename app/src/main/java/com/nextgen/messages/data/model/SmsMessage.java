@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Unified data model representing an SMS or MMS message stored in the Telephony provider.
+ * Unified data model representing an SMS or MMS message stored in the Telephony provider,
+ * along with Step 8 enrichment (starred, suspicious link detection).
  */
 public class SmsMessage {
 
@@ -63,6 +64,12 @@ public class SmsMessage {
     @NonNull
     private final List<String> recipients;
 
+    // Step 8 additions
+    private final boolean isStarred;
+    private final boolean hasSuspiciousLink;
+    @Nullable
+    private final String warningReason;
+
     /**
      * Standard constructor for SMS messages.
      */
@@ -108,6 +115,38 @@ public class SmsMessage {
             long mmsMessageSize,
             @Nullable List<String> recipients
     ) {
+        this(id, threadId, address, body, date, dateSent, type, isRead, isSeen, status, errorCode, subscriptionId,
+                isMms, subject, attachments, mmsDownloadStatus, mmsContentLocation, mmsMessageSize, recipients,
+                false, false, null);
+    }
+
+    /**
+     * Complete constructor including Step 8 metadata.
+     */
+    public SmsMessage(
+            long id,
+            long threadId,
+            @Nullable String address,
+            @Nullable String body,
+            long date,
+            long dateSent,
+            int type,
+            boolean isRead,
+            boolean isSeen,
+            int status,
+            int errorCode,
+            int subscriptionId,
+            boolean isMms,
+            @Nullable String subject,
+            @Nullable List<MmsAttachment> attachments,
+            int mmsDownloadStatus,
+            @Nullable String mmsContentLocation,
+            long mmsMessageSize,
+            @Nullable List<String> recipients,
+            boolean isStarred,
+            boolean hasSuspiciousLink,
+            @Nullable String warningReason
+    ) {
         this.id = id;
         this.threadId = threadId;
         this.address = address;
@@ -127,10 +166,22 @@ public class SmsMessage {
         this.mmsContentLocation = mmsContentLocation;
         this.mmsMessageSize = mmsMessageSize;
         this.recipients = recipients != null ? new ArrayList<>(recipients) : Collections.emptyList();
+        this.isStarred = isStarred;
+        this.hasSuspiciousLink = hasSuspiciousLink;
+        this.warningReason = warningReason;
     }
 
     public long getId() {
         return id;
+    }
+
+    /**
+     * Unique string key identifying this message row across SMS and MMS providers.
+     * e.g., "SMS_12" or "MMS_34".
+     */
+    @NonNull
+    public String getMessageKey() {
+        return (isMms ? "MMS_" : "SMS_") + id;
     }
 
     /**
@@ -271,6 +322,46 @@ public class SmsMessage {
         return mmsMessageSize;
     }
 
+    public boolean isStarred() {
+        return isStarred;
+    }
+
+    public boolean hasSuspiciousLink() {
+        return hasSuspiciousLink;
+    }
+
+    @Nullable
+    public String getWarningReason() {
+        return warningReason;
+    }
+
+    public SmsMessage withStep8State(boolean isStarred, boolean hasSuspiciousLink, @Nullable String warningReason) {
+        return new SmsMessage(
+                this.id,
+                this.threadId,
+                this.address,
+                this.body,
+                this.date,
+                this.dateSent,
+                this.type,
+                this.isRead,
+                this.isSeen,
+                this.status,
+                this.errorCode,
+                this.subscriptionId,
+                this.isMms,
+                this.subject,
+                this.attachments,
+                this.mmsDownloadStatus,
+                this.mmsContentLocation,
+                this.mmsMessageSize,
+                this.recipients,
+                isStarred,
+                hasSuspiciousLink,
+                warningReason
+        );
+    }
+
     public static SmsMessage createMms(
             long id,
             long threadId,
@@ -283,7 +374,8 @@ public class SmsMessage {
     ) {
         return new SmsMessage(
                 id, threadId, address, body, date, 0L, type, true, true, 0, 0, 1,
-                true, subject, attachments, MMS_DOWNLOAD_STATUS_NONE, null, 0L, null
+                true, subject, attachments, MMS_DOWNLOAD_STATUS_NONE, null, 0L, null,
+                false, false, null
         );
     }
 
@@ -366,15 +458,19 @@ public class SmsMessage {
                 && subscriptionId == that.subscriptionId
                 && isMms == that.isMms
                 && mmsDownloadStatus == that.mmsDownloadStatus
+                && isStarred == that.isStarred
+                && hasSuspiciousLink == that.hasSuspiciousLink
                 && Objects.equals(address, that.address)
                 && Objects.equals(body, that.body)
                 && Objects.equals(subject, that.subject)
-                && Objects.equals(attachments, that.attachments);
+                && Objects.equals(attachments, that.attachments)
+                && Objects.equals(warningReason, that.warningReason);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, threadId, address, body, date, dateSent, type, isRead, isSeen, status, errorCode, subscriptionId, isMms, subject, attachments, mmsDownloadStatus);
+        return Objects.hash(id, threadId, address, body, date, dateSent, type, isRead, isSeen, status, errorCode,
+                subscriptionId, isMms, subject, attachments, mmsDownloadStatus, isStarred, hasSuspiciousLink);
     }
 
     @NonNull
@@ -388,6 +484,8 @@ public class SmsMessage {
                 ", date=" + date +
                 ", type=" + type +
                 ", isRead=" + isRead +
+                ", starred=" + isStarred +
+                ", suspicious=" + hasSuspiciousLink +
                 '}';
     }
 }

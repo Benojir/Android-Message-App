@@ -91,8 +91,6 @@
 
     <!-- Settings: Upcoming Roadmap -->
     <string name="settings_section_future">Upcoming Capabilities</string>
-    <string name="settings_notifications_title">Notifications &amp; Alerts</string>
-    <string name="settings_notifications_summary">Channels, quiet hours, and quick reply</string>
     <string name="settings_privacy_title">Privacy Vault</string>
     <string name="settings_privacy_summary">Biometric app lock and on-device encryption</string>
     <string name="settings_backup_title">Local Backup &amp; Restore</string>
@@ -315,4 +313,143 @@
     <string name="action_add_rule">Add Rule</string>
     <string name="toast_rule_created">Rule created successfully</string>
     <string name="toast_rule_deleted">Rule deleted</string>
+
+    <!-- Step 8: Advanced Search, Archive, Pin, Star & Spam Protection -->
+    <string name="action_archive">Archive</string>
+    <string name="action_unarchive">Unarchive</string>
+    <string name="action_pin">Pin to top</string>
+    <string name="action_unpin">Unpin from top</string>
+    <string name="toast_archived">Conversation archived</string>
+    <string name="toast_unarchived">Conversation unarchived</string>
+    <string name="toast_pinned">Conversation pinned to top</string>
+    <string name="toast_unpinned">Conversation unpinned</string>
+    <string name="cd_pinned_conversation">Pinned conversation</string>
+    <string name="archived_title">Archived Conversations</string>
+    <string name="archived_empty_title">No archived conversations</string>
+    <string name="archived_empty_subtitle">Conversations you archive will be stored here safely.</string>
+
+    <string name="action_star">Star</string>
+    <string name="action_unstar">Unstar</string>
+    <string name="starred_title">Starred Messages</string>
+    <string name="starred_empty_title">No starred messages</string>
+    <string name="starred_empty_subtitle">Tap and hold any message in a chat and select Star to save it here.</string>
+    <string name="toast_message_starred">Message starred</string>
+    <string name="toast_message_unstarred">Message unstarred</string>
+    <string name="cd_starred_message">Starred message</string>
+
+    <string name="action_block">Block</string>
+    <string name="action_block_sender">Block sender</string>
+    <string name="action_unblock">Unblock</string>
+    <string name="action_report_spam">Report Spam</string>
+    <string name="action_not_spam">Not Spam</string>
+    <string name="dialog_block_title">Block %1$s?</string>
+    <string name="dialog_block_message">You will no longer receive notifications from this sender. Future messages will be redirected to Spam &amp; Blocked.</string>
+    <string name="dialog_report_spam_title">Report as Spam?</string>
+    <string name="dialog_report_spam_message">This conversation will be marked as spam locally and moved to Spam &amp; Blocked. No reports are transmitted externally.</string>
+    <string name="dialog_unblock_title">Unblock %1$s?</string>
+    <string name="dialog_unblock_message">New messages from this sender will appear in your regular inbox.</string>
+    <string name="toast_sender_blocked">Sender blocked and moved to Spam</string>
+    <string name="toast_sender_unblocked">Sender unblocked</string>
+    <string name="toast_marked_not_spam">Conversation restored to inbox</string>
+    <string name="blocked_senders_title">Blocked Senders</string>
+    <string name="blocked_empty_title">No blocked senders</string>
+    <string name="blocked_empty_subtitle">Blocked phone numbers and alphanumeric sender IDs will appear here.</string>
+    <string name="dialog_add_blocked_title">Block a Number</string>
+    <string name="dialog_add_blocked_hint">Phone number or sender ID</string>
+    <string name="spam_title">Spam &amp; Blocked</string>
+    <string name="spam_empty_title">No spam or blocked messages</string>
+    <string name="spam_empty_subtitle">Filtered spam and messages from blocked senders appear here.</string>
+    <string name="banner_spam_notice">This conversation was marked as spam or is from a blocked sender.</string>
+    <string name="spam_banner_message">This conversation was marked as spam or is from a blocked sender.</string>
+    <string name="warning_suspicious_link_title">Suspicious Link Warning</string>
+    <string name="action_dismiss">Dismiss</string>
+    <string name="banner_phishing_warning">&#9888; Potentially suspicious message or link. Verify the sender before opening links or sharing sensitive information.</string>
+    <string name="dialog_safe_link_title">Open External Link?</string>
+    <string name="dialog_safe_link_message">You are about to open:\n\n%1$s\n\nEnsure this destination is trustworthy before proceeding.</string>
+    <string name="action_open_link">Open Link</string>
+    <string name="action_copy_link">Copy Link</string>
+
+    <!-- Search Filters -->
+    <string name="search_filter_all">All</string>
+    <string name="search_filter_sms">SMS</string>
+    <string name="search_filter_mms">MMS</string>
+    <string name="search_filter_images">Images</string>
+    <string name="search_filter_videos">Videos</string>
+    <string name="search_filter_audio">Audio</string>
+    <string name="search_filter_links">Links</string>
+    <string name="search_filter_contacts">Contacts</string>
+    <string name="search_filter_unknown">Unknown Senders</string>
+    <string name="search_filter_starred">Starred</string>
+    <string name="search_filter_date">Date Range</string>
+    <string name="search_no_results">No messages match your search criteria.</string>
+
+    <!-- Settings: Spam Protection & Security -->
+    <string name="settings_section_spam_security">Spam Protection &amp; Security</string>
+    <string name="settings_spam_detection_title">Spam Protection</string>
+    <string name="settings_spam_detection_summary">Analyze incoming messages locally to detect spam and scam attempts</string>
+    <string name="settings_suspicious_links_title">Suspicious Link Warnings</string>
+    <string name="settings_suspicious_links_summary">Show safety warnings for suspicious links and potential phishing</string>
+    <string name="settings_unknown_senders_title">Filter Unknown Senders</string>
+    <string name="settings_unknown_senders_summary">Organize messages from unsaved numbers into a dedicated view</string>
+    <string name="settings_auto_unarchive_title">Auto-Unarchive Conversations</string>
+    <string name="settings_auto_unarchive_summary">Automatically restore archived conversations to the inbox when a new message arrives</string>
+    <string name="settings_spam_sensitivity_title">Spam Sensitivity</string>
+    <string name="settings_spam_sensitivity_conservative">Conservative (Recommended)</string>
+    <string name="settings_spam_sensitivity_balanced">Balanced</string>
+    <string name="settings_blocked_senders_title">Blocked Senders</string>
+    <string name="settings_blocked_senders_summary">Manage blocked phone numbers and senders</string>
+    <string name="settings_archived_title">Archived Conversations</string>
+    <string name="settings_archived_summary">View and manage archived conversation threads</string>
+    <string name="settings_starred_title">Starred Messages</string>
+    <string name="settings_starred_summary">View all messages you have starred</string>
+    <string name="settings_spam_screen_title">Spam &amp; Blocked</string>
+    <string name="settings_spam_screen_summary">View filtered spam and messages from blocked numbers</string>
+
+    <!-- Step 9: Real-Time SMS/MMS Notifications, Quick Reply & Advanced Notification Management -->
+    <string name="channel_messages_name">Messages</string>
+    <string name="channel_messages_desc">Notifications for individual conversations and standard SMS</string>
+    <string name="channel_group_messages_name">Group Messages</string>
+    <string name="channel_group_messages_desc">Notifications for group conversations and MMS chats</string>
+    <string name="channel_mms_name">MMS Downloads</string>
+    <string name="channel_mms_desc">Notifications for pending or downloading multimedia messages</string>
+    <string name="channel_silent_name">Silent Messages</string>
+    <string name="channel_silent_desc">Notifications for muted or silent conversations</string>
+
+    <string name="action_reply">Reply</string>
+    <string name="notification_reply_hint">Type a reply…</string>
+    <string name="notification_new_message">New message</string>
+    <string name="notification_generic_received">New message received</string>
+    <string name="notification_hidden_content">New message</string>
+    <string name="notification_otp_hidden">Verification code received</string>
+    <string name="notification_mms_pending">New multimedia message available to download</string>
+    <string name="notification_mms_image">Sent a photo</string>
+    <string name="notification_mms_video">Sent a video</string>
+    <string name="notification_mms_audio">Sent an audio message</string>
+    <string name="notification_group_summary_single">%1$d new message</string>
+    <string name="notification_group_summary_multiple">%1$d new messages from %2$d conversations</string>
+
+    <string name="action_mute_notifications">Mute notifications</string>
+    <string name="action_unmute_notifications">Unmute notifications</string>
+    <string name="dialog_mute_title">Mute notifications</string>
+    <string name="mute_duration_1_hour">1 hour</string>
+    <string name="mute_duration_8_hours">8 hours</string>
+    <string name="mute_duration_24_hours">24 hours</string>
+    <string name="mute_duration_indefinite">Until manually unmuted</string>
+    <string name="toast_conversation_muted">Conversation muted</string>
+    <string name="toast_conversation_unmuted">Conversation unmuted</string>
+
+    <string name="settings_section_notifications">Notifications</string>
+    <string name="settings_notifications_title">Show notifications</string>
+    <string name="settings_notifications_summary">Receive alerts for incoming SMS and MMS messages</string>
+    <string name="settings_notification_privacy_title">Notification Privacy</string>
+    <string name="settings_privacy_full">Show sender and message content</string>
+    <string name="settings_privacy_hide_body">Hide message content</string>
+    <string name="settings_privacy_hide_all">Hide all sensitive information</string>
+    <string name="settings_hide_otp_lockscreen_title">Hide OTPs on lock screen</string>
+    <string name="settings_hide_otp_lockscreen_summary">Keep verification codes hidden until the device is unlocked</string>
+    <string name="settings_show_sim_badge_title">Show SIM badge</string>
+    <string name="settings_show_sim_badge_summary">Display which SIM received the message on Dual SIM devices</string>
+    <string name="settings_system_channel_settings_title">Notification Channels &amp; Sounds</string>
+    <string name="settings_system_channel_settings_summary">Configure system alert sounds, vibrations, and banners</string>
+    <string name="permission_notification_rationale">NextGen Messages needs notification permission to alert you when new text messages arrive.</string>
 </resources>
