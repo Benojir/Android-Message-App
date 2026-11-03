@@ -44,6 +44,10 @@ public class Conversation implements Serializable {
     private final long mutedUntil;
     private final boolean isSilent;
 
+    // Step 12: Direction and status metadata
+    private final int latestType;
+    private final int latestStatus;
+
     public Conversation(
             long threadId,
             @Nullable String address,
@@ -115,6 +119,32 @@ public class Conversation implements Serializable {
             long mutedUntil,
             boolean isSilent
     ) {
+        this(threadId, address, contactName, photoUri, snippet, date, unreadCount, messageCount, isGroup, recipients,
+                isPinned, pinnedAt, isArchived, archivedAt, isBlocked, isSpam, mutedUntil, isSilent, 0, -1);
+    }
+
+    public Conversation(
+            long threadId,
+            @Nullable String address,
+            @Nullable String contactName,
+            @Nullable Uri photoUri,
+            @Nullable String snippet,
+            long date,
+            int unreadCount,
+            int messageCount,
+            boolean isGroup,
+            @Nullable List<String> recipients,
+            boolean isPinned,
+            long pinnedAt,
+            boolean isArchived,
+            long archivedAt,
+            boolean isBlocked,
+            boolean isSpam,
+            long mutedUntil,
+            boolean isSilent,
+            int latestType,
+            int latestStatus
+    ) {
         this.threadId = threadId;
         this.address = address;
         this.contactName = contactName;
@@ -133,6 +163,8 @@ public class Conversation implements Serializable {
         this.isSpam = isSpam;
         this.mutedUntil = mutedUntil;
         this.isSilent = isSilent;
+        this.latestType = latestType;
+        this.latestStatus = latestStatus;
     }
 
     public long getThreadId() {
@@ -161,7 +193,45 @@ public class Conversation implements Serializable {
 
     @NonNull
     public String getDisplaySnippet() {
-        return snippet != null ? snippet : "";
+        if (snippet == null || snippet.isEmpty()) {
+            return "";
+        }
+        if (isLatestFailed()) {
+            return "Not sent: " + snippet;
+        } else if (isLatestDraft()) {
+            return "Draft: " + snippet;
+        } else if (latestType == android.provider.Telephony.Sms.MESSAGE_TYPE_OUTBOX
+                || latestType == android.provider.Telephony.Sms.MESSAGE_TYPE_QUEUED) {
+            return "Sending… " + snippet;
+        } else if (latestType == android.provider.Telephony.Sms.MESSAGE_TYPE_SENT) {
+            return "You: " + snippet;
+        }
+        return snippet;
+    }
+
+    public int getLatestType() {
+        return latestType;
+    }
+
+    public int getLatestStatus() {
+        return latestStatus;
+    }
+
+    public boolean isLatestFailed() {
+        return latestType == android.provider.Telephony.Sms.MESSAGE_TYPE_FAILED
+                || latestStatus == android.provider.Telephony.Sms.STATUS_FAILED;
+    }
+
+    public boolean isLatestDraft() {
+        return latestType == android.provider.Telephony.Sms.MESSAGE_TYPE_DRAFT;
+    }
+
+    public boolean isLatestOutgoing() {
+        return latestType == android.provider.Telephony.Sms.MESSAGE_TYPE_SENT
+                || latestType == android.provider.Telephony.Sms.MESSAGE_TYPE_OUTBOX
+                || latestType == android.provider.Telephony.Sms.MESSAGE_TYPE_QUEUED
+                || latestType == android.provider.Telephony.Sms.MESSAGE_TYPE_FAILED
+                || latestType == android.provider.Telephony.Sms.MESSAGE_TYPE_DRAFT;
     }
 
     public long getDate() {
@@ -284,7 +354,9 @@ public class Conversation implements Serializable {
                 isBlocked,
                 isSpam,
                 mutedUntil,
-                isSilent
+                isSilent,
+                latestType,
+                latestStatus
         );
     }
 
@@ -314,6 +386,8 @@ public class Conversation implements Serializable {
                 && isSpam == that.isSpam
                 && mutedUntil == that.mutedUntil
                 && isSilent == that.isSilent
+                && latestType == that.latestType
+                && latestStatus == that.latestStatus
                 && Objects.equals(address, that.address)
                 && Objects.equals(contactName, that.contactName)
                 && Objects.equals(photoUri, that.photoUri)
@@ -323,7 +397,7 @@ public class Conversation implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(threadId, address, contactName, photoUri, snippet, date, unreadCount, messageCount,
-                isPinned, isArchived, isBlocked, isSpam, mutedUntil, isSilent);
+                isPinned, isArchived, isBlocked, isSpam, mutedUntil, isSilent, latestType, latestStatus);
     }
 
     @NonNull

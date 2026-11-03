@@ -1,5 +1,6 @@
 package com.nextgen.messages.ui.inbox;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
@@ -140,8 +141,28 @@ public class ConversationAdapter extends ListAdapter<Conversation, ConversationA
                 @Nullable OnConversationLongClickListener longClickListener,
                 @NonNull ConversationAdapter adapter
         ) {
+            Context context = itemView.getContext();
+            com.nextgen.messages.data.local.AppPreferences prefs = com.nextgen.messages.data.local.AppPreferences.getInstance(context);
+            boolean isPrivate = prefs.isConversationPrivate(item.getThreadId());
+            binding.ivLock.setVisibility(isPrivate ? View.VISIBLE : View.GONE);
+
             binding.tvTitle.setText(item.getTitle());
-            binding.tvSnippet.setText(item.getDisplaySnippet());
+            if (isPrivate) {
+                binding.tvSnippet.setText(context.getString(R.string.private_conversation_snippet_masked));
+                binding.tvSnippet.setTypeface(null, Typeface.ITALIC);
+                binding.tvSnippet.setTextColor(Color.parseColor("#757575"));
+            } else {
+                binding.tvSnippet.setText(item.getDisplaySnippet());
+                binding.tvSnippet.setTypeface(null, Typeface.NORMAL);
+                if (item.isLatestFailed()) {
+                    binding.tvSnippet.setTextColor(Color.parseColor("#B00020"));
+                } else if (item.isLatestDraft()) {
+                    binding.tvSnippet.setTextColor(Color.parseColor("#E65100"));
+                } else {
+                    binding.tvSnippet.setTextColor(Color.parseColor("#757575"));
+                }
+            }
+
             binding.tvTimestamp.setText(DateFormatter.formatConversationTime(item.getDate()));
             binding.ivPin.setVisibility(item.isPinned() ? View.VISIBLE : View.GONE);
             binding.ivMute.setVisibility(item.isCurrentlyMuted() ? View.VISIBLE : View.GONE);

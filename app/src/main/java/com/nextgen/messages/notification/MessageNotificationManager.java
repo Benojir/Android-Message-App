@@ -158,7 +158,8 @@ public class MessageNotificationManager {
                 appContext,
                 senderName,
                 body,
-                sender
+                sender,
+                threadId
         );
 
         ConversationMetadataEntity meta = metadataRepo.getOrCreateMetadata(threadId);
@@ -241,7 +242,10 @@ public class MessageNotificationManager {
         // Intents & Actions
         builder.setContentIntent(createContentIntent(threadId, sender, notifId));
         builder.setDeleteIntent(createDeleteIntent(threadId, notifId));
-        builder.addAction(createQuickReplyAction(threadId, sender, subscriptionId, notifId));
+        boolean isPrivateConv = preferences.isConversationPrivate(threadId);
+        if (!isPrivateConv) {
+            builder.addAction(createQuickReplyAction(threadId, sender, subscriptionId, notifId));
+        }
         builder.addAction(createMarkAsReadAction(threadId, notifId));
 
         // Post notification safely
@@ -302,7 +306,8 @@ public class MessageNotificationManager {
                 appContext,
                 senderName,
                 mmsBody,
-                safeSender
+                safeSender,
+                threadId
         );
 
         ConversationMetadataEntity meta = metadataRepo.getOrCreateMetadata(threadId);
@@ -350,7 +355,10 @@ public class MessageNotificationManager {
 
         builder.setContentIntent(createContentIntent(threadId, safeSender, notifId));
         builder.setDeleteIntent(createDeleteIntent(threadId, notifId));
-        builder.addAction(createQuickReplyAction(threadId, safeSender, subscriptionId, notifId));
+        boolean isPrivateMmsConv = preferences.isConversationPrivate(threadId);
+        if (!isPrivateMmsConv) {
+            builder.addAction(createQuickReplyAction(threadId, safeSender, subscriptionId, notifId));
+        }
         builder.addAction(createMarkAsReadAction(threadId, notifId));
 
         try {

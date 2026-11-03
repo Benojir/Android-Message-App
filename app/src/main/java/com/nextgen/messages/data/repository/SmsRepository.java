@@ -44,6 +44,7 @@ public class SmsRepository {
             Telephony.Sms.BODY,
             Telephony.Sms.DATE,
             Telephony.Sms.TYPE,
+            Telephony.Sms.STATUS,
             Telephony.Sms.READ
     };
 
@@ -151,6 +152,7 @@ public class SmsRepository {
             int bodyIdx = cursor.getColumnIndex(Telephony.Sms.BODY);
             int dateIdx = cursor.getColumnIndex(Telephony.Sms.DATE);
             int typeIdx = cursor.getColumnIndex(Telephony.Sms.TYPE);
+            int statusIdx = cursor.getColumnIndex(Telephony.Sms.STATUS);
             int readIdx = cursor.getColumnIndex(Telephony.Sms.READ);
 
             do {
@@ -163,12 +165,13 @@ public class SmsRepository {
                 String body = bodyIdx >= 0 ? cursor.getString(bodyIdx) : null;
                 long date = dateIdx >= 0 ? cursor.getLong(dateIdx) : 0L;
                 int type = typeIdx >= 0 ? cursor.getInt(typeIdx) : 0;
+                int status = statusIdx >= 0 ? cursor.getInt(statusIdx) : -1;
                 boolean isRead = readIdx >= 0 && cursor.getInt(readIdx) == 1;
 
                 ConversationBuilder builder = threadMap.get(threadId);
                 if (builder == null) {
                     // First encounter: this is the latest message in this thread
-                    builder = new ConversationBuilder(threadId, address, body, date);
+                    builder = new ConversationBuilder(threadId, address, body, date, type, status);
                     threadMap.put(threadId, builder);
                 } else if ((builder.address == null || builder.address.isEmpty()) && address != null) {
                     // Backfill address if latest row was missing it
@@ -225,13 +228,19 @@ public class SmsRepository {
                             ? subject.trim()
                             : "📷 Multimedia message";
 
+                    int mmsType = (box == Telephony.Mms.MESSAGE_BOX_INBOX)
+                            ? Telephony.Sms.MESSAGE_TYPE_INBOX
+                            : (box == Telephony.Mms.MESSAGE_BOX_FAILED ? Telephony.Sms.MESSAGE_TYPE_FAILED : Telephony.Sms.MESSAGE_TYPE_SENT);
+
                     ConversationBuilder builder = threadMap.get(threadId);
                     if (builder == null) {
-                        builder = new ConversationBuilder(threadId, null, snippet, dateMs);
+                        builder = new ConversationBuilder(threadId, null, snippet, dateMs, mmsType, 0);
                         threadMap.put(threadId, builder);
                     } else if (dateMs > builder.latestDate) {
                         builder.latestDate = dateMs;
                         builder.snippet = snippet;
+                        builder.latestType = mmsType;
+                        builder.latestStatus = 0;
                     }
 
                     builder.messageCount++;
@@ -260,7 +269,19 @@ public class SmsRepository {
                     b.snippet,
                     b.latestDate,
                     b.unreadCount,
-                    b.messageCount
+                    b.messageCount,
+                    false,
+                    Collections.emptyList(),
+                    false,
+                    0L,
+                    false,
+                    0L,
+                    false,
+                    false,
+                    0L,
+                    false,
+                    b.latestType,
+                    b.latestStatus
             ));
         }
 
@@ -861,12 +882,20 @@ public class SmsRepository {
         long latestDate;
         int unreadCount = 0;
         int messageCount = 0;
+        int latestType = 0;
+        int latestStatus = -1;
 
         ConversationBuilder(long threadId, @Nullable String address, @Nullable String snippet, long latestDate) {
+            this(threadId, address, snippet, latestDate, 0, -1);
+        }
+
+        ConversationBuilder(long threadId, @Nullable String address, @Nullable String snippet, long latestDate, int latestType, int latestStatus) {
             this.threadId = threadId;
             this.address = address;
             this.snippet = snippet;
             this.latestDate = latestDate;
+            this.latestType = latestType;
+            this.latestStatus = latestStatus;
         }
     }
 }

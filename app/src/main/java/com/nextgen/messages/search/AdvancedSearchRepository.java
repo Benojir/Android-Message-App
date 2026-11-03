@@ -85,9 +85,16 @@ public class AdvancedSearchRepository {
         String rawQuery = filter.getQuery() != null ? filter.getQuery().trim() : "";
         String lowerQuery = rawQuery.toLowerCase(Locale.ROOT);
 
+        boolean isAppLocked = com.nextgen.messages.security.lock.AppLockManager.getInstance(context).isLocked();
+        com.nextgen.messages.data.local.AppPreferences prefs = com.nextgen.messages.data.local.AppPreferences.getInstance(context);
+
         // Scan conversation threads
         for (Conversation conv : conversations) {
             long threadId = conv.getThreadId();
+            if (prefs.isConversationPrivate(threadId) && isAppLocked) {
+                // Exclude private conversations from search previews when locked
+                continue;
+            }
             List<SmsMessage> threadMessages = smsRepo.getMessagesForThreadSync(threadId);
 
             for (SmsMessage msg : threadMessages) {

@@ -383,6 +383,14 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
         }
 
         void bind(@NonNull SmsMessage message, boolean isSelected, boolean isHighlighted) {
+            Context ctx = itemView.getContext();
+            BubbleStyleManager.BubbleAppearance appearance = BubbleStyleManager.resolveAppearance(ctx, true);
+            binding.bubbleContainer.setBackground(appearance.background);
+            binding.tvMessageBody.setTextColor(appearance.textColor);
+            binding.tvMessageTime.setTextColor(appearance.secondaryTextColor);
+            BubbleStyleManager.applyFontSize(ctx, binding.tvMessageBody);
+            BubbleStyleManager.applyDensity(ctx, itemView, binding.bubbleContainer);
+
             binding.tvMessageTime.setText(DateFormatter.formatMessageBubbleTime(message.getDate()));
 
             // Step 8: Star indicator
@@ -442,6 +450,14 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
         }
 
         void bind(@NonNull SmsMessage message, boolean isSelected, boolean isHighlighted) {
+            Context ctx = itemView.getContext();
+            BubbleStyleManager.BubbleAppearance appearance = BubbleStyleManager.resolveAppearance(ctx, false);
+            binding.bubbleContainer.setBackground(appearance.background);
+            binding.tvMessageBody.setTextColor(appearance.textColor);
+            binding.tvMessageTime.setTextColor(appearance.secondaryTextColor);
+            BubbleStyleManager.applyFontSize(ctx, binding.tvMessageBody);
+            BubbleStyleManager.applyDensity(ctx, itemView, binding.bubbleContainer);
+
             setupLinkableBody(binding.tvMessageBody, message.getDisplayBody(), false, null, linkClickListener);
             binding.tvMessageTime.setText(DateFormatter.formatMessageBubbleTime(message.getDate()));
 
@@ -509,6 +525,14 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
         }
 
         void bind(@NonNull SmsMessage message, boolean isSelected, boolean isHighlighted) {
+            Context ctx = itemView.getContext();
+            BubbleStyleManager.BubbleAppearance appearance = BubbleStyleManager.resolveAppearance(ctx, true);
+            binding.bubbleContainer.setBackground(appearance.background);
+            binding.tvMessageBody.setTextColor(appearance.textColor);
+            binding.tvMessageTime.setTextColor(appearance.secondaryTextColor);
+            BubbleStyleManager.applyFontSize(ctx, binding.tvMessageBody);
+            BubbleStyleManager.applyDensity(ctx, itemView, binding.bubbleContainer);
+
             if (isSelected) {
                 itemView.setBackgroundColor(Color.parseColor("#331976D2"));
             } else if (isHighlighted) {
@@ -637,6 +661,14 @@ public class MessageAdapter extends ListAdapter<MessageListItem, RecyclerView.Vi
         }
 
         void bind(@NonNull SmsMessage message, boolean isSelected, boolean isHighlighted) {
+            Context ctx = itemView.getContext();
+            BubbleStyleManager.BubbleAppearance appearance = BubbleStyleManager.resolveAppearance(ctx, false);
+            binding.bubbleContainer.setBackground(appearance.background);
+            binding.tvMessageBody.setTextColor(appearance.textColor);
+            binding.tvMessageTime.setTextColor(appearance.secondaryTextColor);
+            BubbleStyleManager.applyFontSize(ctx, binding.tvMessageBody);
+            BubbleStyleManager.applyDensity(ctx, itemView, binding.bubbleContainer);
+
             if (isSelected) {
                 itemView.setBackgroundColor(Color.parseColor("#331976D2"));
             } else if (isHighlighted) {

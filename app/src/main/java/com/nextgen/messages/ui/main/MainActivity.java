@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        com.nextgen.messages.utils.ThemeHelper.applyToActivity(this);
         // Enable edge-to-edge system window decor fitting before setContentView
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
 

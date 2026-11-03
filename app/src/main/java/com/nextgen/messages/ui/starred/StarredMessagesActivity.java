@@ -41,6 +41,7 @@ public class StarredMessagesActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        com.nextgen.messages.utils.ThemeHelper.applyToActivity(this);
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         binding = ActivityStarredMessagesBinding.inflate(getLayoutInflater());

@@ -66,7 +66,32 @@ public class NotificationPrivacyManager {
             @Nullable String rawBody,
             @Nullable String senderAddress
     ) {
+        return resolveDisplayContent(context, senderDisplayName, rawBody, senderAddress, -1L);
+    }
+
+    /**
+     * Resolves presentation content with thread-level private conversation awareness.
+     */
+    @NonNull
+    public static DisplayContent resolveDisplayContent(
+            @NonNull Context context,
+            @NonNull String senderDisplayName,
+            @Nullable String rawBody,
+            @Nullable String senderAddress,
+            long threadId
+    ) {
         AppPreferences prefs = AppPreferences.getInstance(context);
+        boolean isPrivate = threadId > 0 && prefs.isConversationPrivate(threadId);
+
+        if (isPrivate) {
+            return new DisplayContent(
+                    senderDisplayName,
+                    context.getString(R.string.notification_private_message_received),
+                    true,
+                    false
+            );
+        }
+
         String privacyLevel = prefs.getNotificationPrivacy();
 
         boolean isOtp = isOtpMessage(rawBody, senderAddress);

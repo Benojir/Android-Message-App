@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Spacing Tokens -->
+    <dimen name="spacing_xxsmall">2dp</dimen>
+    <dimen name="spacing_xsmall">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">12dp</dimen>
+    <dimen name="spacing_large">16dp</dimen>
+    <dimen name="spacing_xlarge">24dp</dimen>
+    <dimen name="spacing_xxlarge">32dp</dimen>
+
+    <!-- Corner Radius Tokens -->
+    <dimen name="corner_radius_small">8dp</dimen>
+    <dimen name="corner_radius_medium">12dp</dimen>
+    <dimen name="corner_radius_large">16dp</dimen>
+    <dimen name="corner_radius_xlarge">24dp</dimen>
+    <dimen name="corner_radius_pill">999dp</dimen>
+
+    <!-- Bubble Shape Radii -->
+    <dimen name="bubble_radius_modern_large">18dp</dimen>
+    <dimen name="bubble_radius_modern_small">4dp</dimen>
+    <dimen name="bubble_radius_classic">16dp</dimen>
+    <dimen name="bubble_radius_rounded">22dp</dimen>
+    <dimen name="bubble_radius_minimal">8dp</dimen>
+
+    <!-- Icon Sizing Tokens -->
+    <dimen name="icon_size_small">16dp</dimen>
+    <dimen name="icon_size_medium">20dp</dimen>
+    <dimen name="icon_size_large">24dp</dimen>
+    <dimen name="icon_size_xlarge">32dp</dimen>
+    <dimen name="avatar_size_comfortable">48dp</dimen>
+    <dimen name="avatar_size_compact">40dp</dimen>
+
+    <!-- Typography Scale Dimensions -->
+    <dimen name="text_size_caption">11sp</dimen>
+    <dimen name="text_size_body_small">12sp</dimen>
+    <dimen name="text_size_body_medium">14sp</dimen>
+    <dimen name="text_size_body_large">16sp</dimen>
+    <dimen name="text_size_title_medium">16sp</dimen>
+    <dimen name="text_size_title_large">20sp</dimen>
+
+    <!-- Font Size Scaling Multipliers (Base: 16sp body) -->
+    <dimen name="message_text_size_small">13sp</dimen>
+    <dimen name="message_text_size_default">15sp</dimen>
+    <dimen name="message_text_size_large">17sp</dimen>
+    <dimen name="message_text_size_xlarge">20sp</dimen>
+
+    <!-- Chat Density Padding Tokens -->
+    <dimen name="chat_padding_vertical_compact">2dp</dimen>
+    <dimen name="chat_padding_vertical_comfortable">4dp</dimen>
+    <dimen name="chat_padding_vertical_spacious">8dp</dimen>
+    <dimen name="chat_bubble_padding_h_compact">10dp</dimen>
+    <dimen name="chat_bubble_padding_h_comfortable">14dp</dimen>
+    <dimen name="chat_bubble_padding_h_spacious">18dp</dimen>
+    <dimen name="chat_bubble_padding_v_compact">6dp</dimen>
+    <dimen name="chat_bubble_padding_v_comfortable">10dp</dimen>
+    <dimen name="chat_bubble_padding_v_spacious">14dp</dimen>
+
+    <!-- Inbox Row Padding -->
+    <dimen name="inbox_row_padding_vertical_comfortable">12dp</dimen>
+    <dimen name="inbox_row_padding_vertical_compact">8dp</dimen>
+
+    <!-- Elevation Tokens -->
+    <dimen name="elevation_flat">0dp</dimen>
+    <dimen name="elevation_low">1dp</dimen>
+    <dimen name="elevation_medium">3dp</dimen>
+    <dimen name="elevation_high">6dp</dimen>
+
+    <!-- Responsive Layout Tokens -->
+    <dimen name="max_content_width">720dp</dimen>
+    <dimen name="chat_screen_horizontal_padding">0dp</dimen>
+    <dimen name="inbox_row_padding_horizontal">16dp</dimen>
+</resources>

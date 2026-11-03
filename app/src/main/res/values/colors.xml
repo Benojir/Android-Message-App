@@ -84,4 +84,87 @@
     <color name="cat_spam_container">#FFEBEE</color>
     <color name="cat_other">#546E7A</color>
     <color name="cat_other_container">#ECEFF1</color>
+
+    <!-- AMOLED Dark Color Tokens -->
+    <color name="amoled_background">#000000</color>
+    <color name="amoled_surface">#000000</color>
+    <color name="amoled_surface_variant">#101010</color>
+    <color name="amoled_surface_container">#161616</color>
+    <color name="amoled_surface_container_high">#202020</color>
+    <color name="amoled_outline">#383838</color>
+    <color name="amoled_outline_variant">#242424</color>
+
+    <!-- Accent: Purple -->
+    <color name="accent_purple_light_primary">#7B52AB</color>
+    <color name="accent_purple_light_onPrimary">#FFFFFF</color>
+    <color name="accent_purple_light_container">#EEDCFF</color>
+    <color name="accent_purple_light_onContainer">#2A0054</color>
+    <color name="accent_purple_dark_primary">#D8B9FF</color>
+    <color name="accent_purple_dark_onPrimary">#410072</color>
+    <color name="accent_purple_dark_container">#5A338F</color>
+    <color name="accent_purple_dark_onContainer">#EEDCFF</color>
+
+    <!-- Accent: Green -->
+    <color name="accent_green_light_primary">#2E6B27</color>
+    <color name="accent_green_light_onPrimary">#FFFFFF</color>
+    <color name="accent_green_light_container">#B0F59E</color>
+    <color name="accent_green_light_onContainer">#002202</color>
+    <color name="accent_green_dark_primary">#95D884</color>
+    <color name="accent_green_dark_onPrimary">#003A03</color>
+    <color name="accent_green_dark_container">#13520E</color>
+    <color name="accent_green_dark_onContainer">#B0F59E</color>
+
+    <!-- Accent: Teal -->
+    <color name="accent_teal_light_primary">#006A68</color>
+    <color name="accent_teal_light_onPrimary">#FFFFFF</color>
+    <color name="accent_teal_light_container">#6FF7F4</color>
+    <color name="accent_teal_light_onContainer">#00201F</color>
+    <color name="accent_teal_dark_primary">#4CDAD7</color>
+    <color name="accent_teal_dark_onPrimary">#003736</color>
+    <color name="accent_teal_dark_container">#00504E</color>
+    <color name="accent_teal_dark_onContainer">#6FF7F4</color>
+
+    <!-- Accent: Orange -->
+    <color name="accent_orange_light_primary">#8B5000</color>
+    <color name="accent_orange_light_onPrimary">#FFFFFF</color>
+    <color name="accent_orange_light_container">#FFDCC2</color>
+    <color name="accent_orange_light_onContainer">#2D1600</color>
+    <color name="accent_orange_dark_primary">#FFB77D</color>
+    <color name="accent_orange_dark_onPrimary">#4A2800</color>
+    <color name="accent_orange_dark_container">#6B3B00</color>
+    <color name="accent_orange_dark_onContainer">#FFDCC2</color>
+
+    <!-- Accent: Red -->
+    <color name="accent_red_light_primary">#B3261E</color>
+    <color name="accent_red_light_onPrimary">#FFFFFF</color>
+    <color name="accent_red_light_container">#F9DEDC</color>
+    <color name="accent_red_light_onContainer">#410E0B</color>
+    <color name="accent_red_dark_primary">#F2B8B5</color>
+    <color name="accent_red_dark_onPrimary">#601410</color>
+    <color name="accent_red_dark_container">#8C1D18</color>
+    <color name="accent_red_dark_onContainer">#F9DEDC</color>
+
+    <!-- Accent: Pink -->
+    <color name="accent_pink_light_primary">#9C277E</color>
+    <color name="accent_pink_light_onPrimary">#FFFFFF</color>
+    <color name="accent_pink_light_container">#FFD7F0</color>
+    <color name="accent_pink_light_onContainer">#38002D</color>
+    <color name="accent_pink_dark_primary">#FFAFD9</color>
+    <color name="accent_pink_dark_onPrimary">#5C0048</color>
+    <color name="accent_pink_dark_container">#7F0565</color>
+    <color name="accent_pink_dark_onContainer">#FFD7F0</color>
+
+    <!-- Predefined Bubble Palette Presets -->
+    <color name="bubble_blue_incoming">#E3F2FD</color>
+    <color name="bubble_blue_outgoing">#1976D2</color>
+    <color name="bubble_green_incoming">#E8F5E9</color>
+    <color name="bubble_green_outgoing">#2E7D32</color>
+    <color name="bubble_purple_incoming">#F3E5F5</color>
+    <color name="bubble_purple_outgoing">#7B1FA2</color>
+    <color name="bubble_orange_incoming">#FFF3E0</color>
+    <color name="bubble_orange_outgoing">#E65100</color>
+    <color name="bubble_rose_incoming">#FCE4EC</color>
+    <color name="bubble_rose_outgoing">#C2185B</color>
+    <color name="bubble_slate_incoming">#ECEFF1</color>
+    <color name="bubble_slate_outgoing">#37474F</color>
 </resources>

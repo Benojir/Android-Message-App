@@ -1,5 +1,7 @@
 package com.nextgen.messages.ui.conversation;
 
+import com.nextgen.messages.data.local.AppPreferences;
+
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -106,13 +108,29 @@ public class ConversationActivity extends AppCompatActivity {
                 updateRoleStatusUI();
             });
 
+    private final ActivityResultLauncher<String> wallpaperPickerLauncher =
+            registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+                if (uri != null && threadId > 0) {
+                    try {
+                        getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    } catch (Exception ignored) {
+                    }
+                    com.nextgen.messages.data.local.AppPreferences.getInstance(this)
+                            .setConversationWallpaper(threadId, com.nextgen.messages.data.local.AppPreferences.WALLPAPER_TYPE_IMAGE, uri.toString());
+                    WallpaperManager.applyWallpaper(this, binding.conversationRoot, threadId);
+                    Toast.makeText(this, R.string.wallpaper_applied_toast, Toast.LENGTH_SHORT).show();
+                }
+            });
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        com.nextgen.messages.utils.ThemeHelper.applyToActivity(this);
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
 
         binding = ActivityConversationBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        WallpaperManager.applyWallpaper(this, binding.conversationRoot, threadId);
 
         smsSender = SmsSender.getInstance(this);
         mmsSender = MmsSender.getInstance(this);
@@ -217,6 +235,12 @@ public class ConversationActivity extends AppCompatActivity {
             return true;
         } else if (id == R.id.action_mute_conversation) {
             showMuteDialog();
+            return true;
+        } else if (id == R.id.action_conversation_wallpaper) {
+            showWallpaperDialog();
+            return true;
+        } else if (id == R.id.action_private_conversation) {
+            onTogglePrivateConversation();
             return true;
         } else if (id == R.id.action_archive_conversation) {
             onArchiveConversationClicked();
@@ -940,6 +964,105 @@ public class ConversationActivity extends AppCompatActivity {
     }
 
 
+        private void updatePrivateMenuItem() {
+        if (binding.toolbar != null && binding.toolbar.getMenu() != null) {
+            MenuItem item = binding.toolbar.getMenu().findItem(R.id.action_private_conversation);
+            if (item != null) {
+                boolean isPrivate = AppPreferences.getInstance(this).isConversationPrivate(threadId);
+                item.setTitle(isPrivate ? R.string.action_remove_private : R.string.action_mark_private);
+            }
+        }
+    }
+
+    private void onTogglePrivateConversation() {
+        if (threadId <= 0) return;
+        boolean isPrivate = AppPreferences.getInstance(this).isConversationPrivate(threadId);
+        if (!isPrivate) {
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.dialog_private_conv_title)
+                    .setMessage(R.string.dialog_private_conv_message)
+                    .setPositiveButton(R.string.action_mark_private, (dialog, which) -> {
+                        AppPreferences.getInstance(this).setConversationPrivate(threadId, true);
+                        updatePrivateMenuItem();
+                        android.widget.Toast.makeText(this, R.string.toast_conversation_marked_private, android.widget.Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(R.string.dialog_button_cancel, null)
+                    .show();
+        } else {
+            new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setTitle(R.string.dialog_remove_private_title)
+                    .setMessage(R.string.dialog_remove_private_message)
+                    .setPositiveButton(R.string.action_remove_private, (dialog, which) -> {
+                        AppPreferences.getInstance(this).setConversationPrivate(threadId, false);
+                        updatePrivateMenuItem();
+                        android.widget.Toast.makeText(this, R.string.toast_conversation_unmarked_private, android.widget.Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(R.string.dialog_button_cancel, null)
+                    .show();
+        }
+    }
+
+    private void showWallpaperDialog() {
+        if (threadId <= 0) return;
+        String[] options = new String[]{
+                getString(R.string.wallpaper_default),
+                getString(R.string.wallpaper_solid_amoled),
+                getString(R.string.wallpaper_solid_slate),
+                getString(R.string.wallpaper_solid_light),
+                getString(R.string.wallpaper_gradient_twilight),
+                getString(R.string.wallpaper_gradient_dawn),
+                getString(R.string.wallpaper_gradient_forest),
+                getString(R.string.wallpaper_gradient_ocean),
+                getString(R.string.wallpaper_custom_image)
+        };
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.dialog_title_wallpaper)
+                .setItems(options, (dialog, which) -> {
+                    com.nextgen.messages.data.local.AppPreferences prefs = com.nextgen.messages.data.local.AppPreferences.getInstance(this);
+                    switch (which) {
+                        case 0:
+                            prefs.clearConversationWallpaper(threadId);
+                            Toast.makeText(this, R.string.wallpaper_cleared_toast, Toast.LENGTH_SHORT).show();
+                            break;
+                        case 1:
+                            prefs.setConversationWallpaper(threadId, com.nextgen.messages.data.local.AppPreferences.WALLPAPER_TYPE_SOLID, "#000000");
+                            Toast.makeText(this, R.string.wallpaper_applied_toast, Toast.LENGTH_SHORT).show();
+                            break;
+                        case 2:
+                            prefs.setConversationWallpaper(threadId, com.nextgen.messages.data.local.AppPreferences.WALLPAPER_TYPE_SOLID, "#1E1E24");
+                            Toast.makeText(this, R.string.wallpaper_applied_toast, Toast.LENGTH_SHORT).show();
+                            break;
+                        case 3:
+                            prefs.setConversationWallpaper(threadId, com.nextgen.messages.data.local.AppPreferences.WALLPAPER_TYPE_SOLID, "#ECEFF1");
+                            Toast.makeText(this, R.string.wallpaper_applied_toast, Toast.LENGTH_SHORT).show();
+                            break;
+                        case 4:
+                            prefs.setConversationWallpaper(threadId, com.nextgen.messages.data.local.AppPreferences.WALLPAPER_TYPE_GRADIENT, "twilight");
+                            Toast.makeText(this, R.string.wallpaper_applied_toast, Toast.LENGTH_SHORT).show();
+                            break;
+                        case 5:
+                            prefs.setConversationWallpaper(threadId, com.nextgen.messages.data.local.AppPreferences.WALLPAPER_TYPE_GRADIENT, "dawn");
+                            Toast.makeText(this, R.string.wallpaper_applied_toast, Toast.LENGTH_SHORT).show();
+                            break;
+                        case 6:
+                            prefs.setConversationWallpaper(threadId, com.nextgen.messages.data.local.AppPreferences.WALLPAPER_TYPE_GRADIENT, "forest");
+                            Toast.makeText(this, R.string.wallpaper_applied_toast, Toast.LENGTH_SHORT).show();
+                            break;
+                        case 7:
+                            prefs.setConversationWallpaper(threadId, com.nextgen.messages.data.local.AppPreferences.WALLPAPER_TYPE_GRADIENT, "ocean");
+                            Toast.makeText(this, R.string.wallpaper_applied_toast, Toast.LENGTH_SHORT).show();
+                            break;
+                        case 8:
+                            wallpaperPickerLauncher.launch("image/*");
+                            return;
+                    }
+                    WallpaperManager.applyWallpaper(this, binding.conversationRoot, threadId);
+                })
+                .setNegativeButton(R.string.dialog_button_cancel, null)
+                .show();
+    }
+
     private void showMuteDialog() {
         if (threadId <= 0) return;
         boolean isMuted = ConversationMetadataRepository.getInstance(this).isConversationMuted(threadId);
@@ -1070,6 +1193,8 @@ public class ConversationActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        updatePrivateMenuItem();
+        WallpaperManager.applyWallpaper(this, binding.conversationRoot, threadId);
         MessageNotificationManager.setCurrentActiveThreadId(threadId);
         MessageNotificationManager.getInstance(this).cancelConversationNotification(threadId);
         updateRoleStatusUI();

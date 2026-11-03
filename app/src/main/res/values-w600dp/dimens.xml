@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tablet & Foldable Responsive Dimensions -->
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_xlarge">32dp</dimen>
+    <dimen name="max_content_width">800dp</dimen>
+    <dimen name="chat_screen_horizontal_padding">32dp</dimen>
+    <dimen name="inbox_row_padding_horizontal">24dp</dimen>
+</resources>

@@ -14,6 +14,16 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_conversation_wallpaper"
+        android:title="@string/action_conversation_wallpaper"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_private_conversation"
+        android:title="@string/action_private_conversation"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_archive_conversation"
         android:title="@string/action_archive"
         app:showAsAction="never" />

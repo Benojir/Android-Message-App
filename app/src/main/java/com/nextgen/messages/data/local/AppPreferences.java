@@ -2,7 +2,12 @@ package com.nextgen.messages.data.local;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatDelegate;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Manages persistent local preferences for NextGen Messages.
@@ -252,6 +257,58 @@ public class AppPreferences {
     public static final String KEY_NOTIFICATION_VIBRATION = "pref_notification_vibration";
     public static final String KEY_NOTIFICATION_SOUND = "pref_notification_sound";
 
+    // Step 10: Advanced Themes, Personalization & UI Tokens
+    public static final String KEY_ACCENT_COLOR = "pref_accent_color";
+    public static final String KEY_BUBBLE_STYLE = "pref_bubble_style";
+    public static final String KEY_BUBBLE_COLOR_PRESET = "pref_bubble_color_preset";
+    public static final String KEY_WALLPAPER_TYPE = "pref_wallpaper_type";
+    public static final String KEY_WALLPAPER_VALUE = "pref_wallpaper_value";
+    public static final String KEY_FONT_SIZE = "pref_font_size";
+    public static final String KEY_CHAT_DENSITY = "pref_chat_density";
+    public static final String KEY_INBOX_LAYOUT = "pref_inbox_layout";
+
+    private static final String PREFIX_CONVERSATION_WALLPAPER_TYPE = "pref_conv_wp_type_";
+    private static final String PREFIX_CONVERSATION_WALLPAPER_VALUE = "pref_conv_wp_val_";
+
+    public static final String ACCENT_DEFAULT = "DEFAULT";
+    public static final String ACCENT_BLUE = "BLUE";
+    public static final String ACCENT_PURPLE = "PURPLE";
+    public static final String ACCENT_GREEN = "GREEN";
+    public static final String ACCENT_TEAL = "TEAL";
+    public static final String ACCENT_ORANGE = "ORANGE";
+    public static final String ACCENT_RED = "RED";
+    public static final String ACCENT_PINK = "PINK";
+
+    public static final String BUBBLE_STYLE_MODERN = "MODERN";
+    public static final String BUBBLE_STYLE_CLASSIC = "CLASSIC";
+    public static final String BUBBLE_STYLE_ROUNDED = "ROUNDED";
+    public static final String BUBBLE_STYLE_MINIMAL = "MINIMAL";
+
+    public static final String BUBBLE_COLOR_DEFAULT = "DEFAULT";
+    public static final String BUBBLE_COLOR_BLUE = "BLUE";
+    public static final String BUBBLE_COLOR_GREEN = "GREEN";
+    public static final String BUBBLE_COLOR_PURPLE = "PURPLE";
+    public static final String BUBBLE_COLOR_ORANGE = "ORANGE";
+    public static final String BUBBLE_COLOR_ROSE = "ROSE";
+    public static final String BUBBLE_COLOR_SLATE = "SLATE";
+
+    public static final String WALLPAPER_TYPE_NONE = "NONE";
+    public static final String WALLPAPER_TYPE_SOLID = "SOLID";
+    public static final String WALLPAPER_TYPE_GRADIENT = "GRADIENT";
+    public static final String WALLPAPER_TYPE_IMAGE = "IMAGE";
+
+    public static final String FONT_SIZE_SMALL = "SMALL";
+    public static final String FONT_SIZE_DEFAULT = "DEFAULT";
+    public static final String FONT_SIZE_LARGE = "LARGE";
+    public static final String FONT_SIZE_XLARGE = "XLARGE";
+
+    public static final String DENSITY_COMPACT = "COMPACT";
+    public static final String DENSITY_COMFORTABLE = "COMFORTABLE";
+    public static final String DENSITY_SPACIOUS = "SPACIOUS";
+
+    public static final String INBOX_LAYOUT_COMFORTABLE = "COMFORTABLE";
+    public static final String INBOX_LAYOUT_COMPACT = "COMPACT";
+
     /**
      * Checks if notifications are globally enabled. Default true.
      */
@@ -334,5 +391,255 @@ public class AppPreferences {
         } else {
             sharedPreferences.edit().putString(PREFIX_THREAD_DRAFT + threadId, draft).apply();
         }
+    }
+
+    // --- Step 10: Personalization Getters & Setters ---
+
+    public String getAccentColor() {
+        return sharedPreferences.getString(KEY_ACCENT_COLOR, ACCENT_DEFAULT);
+    }
+
+    public void setAccentColor(String accent) {
+        sharedPreferences.edit().putString(KEY_ACCENT_COLOR, accent != null ? accent : ACCENT_DEFAULT).apply();
+    }
+
+    public String getBubbleStyle() {
+        return sharedPreferences.getString(KEY_BUBBLE_STYLE, BUBBLE_STYLE_MODERN);
+    }
+
+    public void setBubbleStyle(String style) {
+        sharedPreferences.edit().putString(KEY_BUBBLE_STYLE, style != null ? style : BUBBLE_STYLE_MODERN).apply();
+    }
+
+    public String getBubbleColorPreset() {
+        return sharedPreferences.getString(KEY_BUBBLE_COLOR_PRESET, BUBBLE_COLOR_DEFAULT);
+    }
+
+    public void setBubbleColorPreset(String preset) {
+        sharedPreferences.edit().putString(KEY_BUBBLE_COLOR_PRESET, preset != null ? preset : BUBBLE_COLOR_DEFAULT).apply();
+    }
+
+    public String getWallpaperType() {
+        return sharedPreferences.getString(KEY_WALLPAPER_TYPE, WALLPAPER_TYPE_NONE);
+    }
+
+    public void setWallpaperType(String type) {
+        sharedPreferences.edit().putString(KEY_WALLPAPER_TYPE, type != null ? type : WALLPAPER_TYPE_NONE).apply();
+    }
+
+    public String getWallpaperValue() {
+        return sharedPreferences.getString(KEY_WALLPAPER_VALUE, null);
+    }
+
+    public void setWallpaperValue(String value) {
+        if (value == null) {
+            sharedPreferences.edit().remove(KEY_WALLPAPER_VALUE).apply();
+        } else {
+            sharedPreferences.edit().putString(KEY_WALLPAPER_VALUE, value).apply();
+        }
+    }
+
+    public String getConversationWallpaperType(long threadId) {
+        return sharedPreferences.getString(PREFIX_CONVERSATION_WALLPAPER_TYPE + threadId, null);
+    }
+
+    public String getConversationWallpaperValue(long threadId) {
+        return sharedPreferences.getString(PREFIX_CONVERSATION_WALLPAPER_VALUE + threadId, null);
+    }
+
+    public void setConversationWallpaper(long threadId, String type, String value) {
+        if (threadId <= 0) return;
+        if (type == null || WALLPAPER_TYPE_NONE.equalsIgnoreCase(type)) {
+            clearConversationWallpaper(threadId);
+        } else {
+            sharedPreferences.edit()
+                    .putString(PREFIX_CONVERSATION_WALLPAPER_TYPE + threadId, type)
+                    .putString(PREFIX_CONVERSATION_WALLPAPER_VALUE + threadId, value)
+                    .apply();
+        }
+    }
+
+    public void clearConversationWallpaper(long threadId) {
+        if (threadId <= 0) return;
+        sharedPreferences.edit()
+                .remove(PREFIX_CONVERSATION_WALLPAPER_TYPE + threadId)
+                .remove(PREFIX_CONVERSATION_WALLPAPER_VALUE + threadId)
+                .apply();
+    }
+
+    public String getFontSize() {
+        return sharedPreferences.getString(KEY_FONT_SIZE, FONT_SIZE_DEFAULT);
+    }
+
+    public void setFontSize(String size) {
+        sharedPreferences.edit().putString(KEY_FONT_SIZE, size != null ? size : FONT_SIZE_DEFAULT).apply();
+    }
+
+    public String getChatDensity() {
+        return sharedPreferences.getString(KEY_CHAT_DENSITY, DENSITY_COMFORTABLE);
+    }
+
+    public void setChatDensity(String density) {
+        sharedPreferences.edit().putString(KEY_CHAT_DENSITY, density != null ? density : DENSITY_COMFORTABLE).apply();
+    }
+
+    public String getInboxLayout() {
+        return sharedPreferences.getString(KEY_INBOX_LAYOUT, INBOX_LAYOUT_COMFORTABLE);
+    }
+
+    public void setInboxLayout(String layout) {
+        sharedPreferences.edit().putString(KEY_INBOX_LAYOUT, layout != null ? layout : INBOX_LAYOUT_COMFORTABLE).apply();
+    }
+
+    // =========================================================================
+    // Step 11: Privacy, Security, App Lock & Encrypted Backup Constants & Settings
+    // =========================================================================
+
+    public static final String KEY_APP_LOCK_ENABLED = "pref_app_lock_enabled";
+    public static final String KEY_PIN_SALT = "pref_pin_salt";
+    public static final String KEY_PIN_HASH = "pref_pin_hash";
+    public static final String KEY_PIN_ITERATIONS = "pref_pin_iterations";
+    public static final String KEY_BIOMETRIC_ENABLED = "pref_biometric_enabled";
+    public static final String KEY_AUTO_LOCK_TIMEOUT = "pref_auto_lock_timeout";
+    public static final String KEY_FAILED_ATTEMPTS = "pref_failed_attempts";
+    public static final String KEY_LOCKOUT_UNTIL = "pref_lockout_until";
+    public static final String KEY_SCREENSHOT_PROTECTION = "pref_screenshot_protection";
+    public static final String KEY_PRIVATE_THREADS = "pref_private_threads";
+
+    public static final String SCREENSHOT_DISABLED = "DISABLED";
+    public static final String SCREENSHOT_PRIVATE_ONLY = "PRIVATE_ONLY";
+    public static final String SCREENSHOT_ALL = "ALL";
+
+    public static final int AUTO_LOCK_IMMEDIATELY = 0;
+    public static final int AUTO_LOCK_30_SECONDS = 30;
+    public static final int AUTO_LOCK_1_MINUTE = 60;
+    public static final int AUTO_LOCK_5_MINUTES = 300;
+    public static final int AUTO_LOCK_15_MINUTES = 900;
+
+    public boolean isAppLockEnabled() {
+        return sharedPreferences.getBoolean(KEY_APP_LOCK_ENABLED, false) && hasConfiguredPin();
+    }
+
+    public void setAppLockEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_APP_LOCK_ENABLED, enabled).apply();
+    }
+
+    public boolean hasConfiguredPin() {
+        return getPinHash() != null && getPinSalt() != null;
+    }
+
+    @Nullable
+    public String getPinSalt() {
+        return sharedPreferences.getString(KEY_PIN_SALT, null);
+    }
+
+    public void setPinSalt(@Nullable String saltBase64) {
+        if (saltBase64 == null) {
+            sharedPreferences.edit().remove(KEY_PIN_SALT).apply();
+        } else {
+            sharedPreferences.edit().putString(KEY_PIN_SALT, saltBase64).apply();
+        }
+    }
+
+    @Nullable
+    public String getPinHash() {
+        return sharedPreferences.getString(KEY_PIN_HASH, null);
+    }
+
+    public void setPinHash(@Nullable String hashBase64) {
+        if (hashBase64 == null) {
+            sharedPreferences.edit().remove(KEY_PIN_HASH).apply();
+        } else {
+            sharedPreferences.edit().putString(KEY_PIN_HASH, hashBase64).apply();
+        }
+    }
+
+    public int getPinIterations() {
+        return sharedPreferences.getInt(KEY_PIN_ITERATIONS, 100000);
+    }
+
+    public void setPinIterations(int iterations) {
+        sharedPreferences.edit().putInt(KEY_PIN_ITERATIONS, iterations).apply();
+    }
+
+    public boolean isBiometricEnabled() {
+        return sharedPreferences.getBoolean(KEY_BIOMETRIC_ENABLED, true);
+    }
+
+    public void setBiometricEnabled(boolean enabled) {
+        sharedPreferences.edit().putBoolean(KEY_BIOMETRIC_ENABLED, enabled).apply();
+    }
+
+    public int getAutoLockTimeoutSeconds() {
+        return sharedPreferences.getInt(KEY_AUTO_LOCK_TIMEOUT, AUTO_LOCK_IMMEDIATELY);
+    }
+
+    public void setAutoLockTimeoutSeconds(int seconds) {
+        sharedPreferences.edit().putInt(KEY_AUTO_LOCK_TIMEOUT, seconds).apply();
+    }
+
+    public int getFailedAttempts() {
+        return sharedPreferences.getInt(KEY_FAILED_ATTEMPTS, 0);
+    }
+
+    public void setFailedAttempts(int attempts) {
+        sharedPreferences.edit().putInt(KEY_FAILED_ATTEMPTS, attempts).apply();
+    }
+
+    public long getLockoutUntil() {
+        return sharedPreferences.getLong(KEY_LOCKOUT_UNTIL, 0L);
+    }
+
+    public void setLockoutUntil(long timestampMs) {
+        sharedPreferences.edit().putLong(KEY_LOCKOUT_UNTIL, timestampMs).apply();
+    }
+
+    public void clearPinData() {
+        sharedPreferences.edit()
+                .remove(KEY_PIN_HASH)
+                .remove(KEY_PIN_SALT)
+                .remove(KEY_PIN_ITERATIONS)
+                .remove(KEY_APP_LOCK_ENABLED)
+                .remove(KEY_FAILED_ATTEMPTS)
+                .remove(KEY_LOCKOUT_UNTIL)
+                .apply();
+    }
+
+    @NonNull
+    public String getScreenshotProtection() {
+        return sharedPreferences.getString(KEY_SCREENSHOT_PROTECTION, SCREENSHOT_PRIVATE_ONLY);
+    }
+
+    public void setScreenshotProtection(@Nullable String mode) {
+        sharedPreferences.edit()
+                .putString(KEY_SCREENSHOT_PROTECTION, mode != null ? mode : SCREENSHOT_PRIVATE_ONLY)
+                .apply();
+    }
+
+    @NonNull
+    public Set<String> getPrivateThreadIds() {
+        Set<String> set = sharedPreferences.getStringSet(KEY_PRIVATE_THREADS, null);
+        return set != null ? new HashSet<>(set) : new HashSet<>();
+    }
+
+    public void setPrivateThreadIds(@NonNull Set<String> threadIds) {
+        sharedPreferences.edit().putStringSet(KEY_PRIVATE_THREADS, new HashSet<>(threadIds)).apply();
+    }
+
+    public boolean isConversationPrivate(long threadId) {
+        if (threadId <= 0) return false;
+        Set<String> privateThreads = sharedPreferences.getStringSet(KEY_PRIVATE_THREADS, null);
+        return privateThreads != null && privateThreads.contains(String.valueOf(threadId));
+    }
+
+    public void setConversationPrivate(long threadId, boolean isPrivate) {
+        if (threadId <= 0) return;
+        Set<String> current = getPrivateThreadIds();
+        if (isPrivate) {
+            current.add(String.valueOf(threadId));
+        } else {
+            current.remove(String.valueOf(threadId));
+        }
+        setPrivateThreadIds(current);
     }
 }

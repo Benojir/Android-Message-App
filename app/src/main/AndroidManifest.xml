@@ -18,6 +18,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.NextGenMessages">
 
         <!-- Main Inbox and Host Activity -->
@@ -30,6 +31,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Authentication Lock Activity (Step 11) -->
+        <activity
+            android:name=".security.ui.AuthLockActivity"
+            android:exported="false"
+            android:theme="@style/Theme.NextGenMessages"
+            android:windowSoftInputMode="stateAlwaysHidden" />
 
         <!-- SENDTO Compose Activity: Handles standard sms:, smsto:, mms:, mmsto: intents -->
         <activity
@@ -98,23 +106,23 @@
             </intent-filter>
         </service>
 
-        <!-- Receivers for SMS sent and delivery callbacks (Step 4) -->
+        <!-- Receivers for SMS sent and delivery callbacks (Step 4) - Internal use only via explicit PendingIntents -->
         <receiver
             android:name=".telephony.SmsSentReceiver"
-            android:exported="true" />
+            android:exported="false" />
 
         <receiver
             android:name=".telephony.SmsDeliveryReceiver"
-            android:exported="true" />
+            android:exported="false" />
 
-        <!-- Receivers for MMS transport (Step 6) -->
+        <!-- Receivers for MMS transport (Step 6) - Internal use only via explicit PendingIntents -->
         <receiver
             android:name=".telephony.MmsSentReceiver"
-            android:exported="true" />
+            android:exported="false" />
 
         <receiver
             android:name=".telephony.MmsDownloadedReceiver"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- FileProvider for secure MMS PDU sharing with carrier telephony service -->
         <provider

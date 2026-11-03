@@ -37,6 +37,7 @@ public class ImageViewerActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        com.nextgen.messages.utils.ThemeHelper.applyToActivity(this);
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         binding = ActivityImageViewerBinding.inflate(getLayoutInflater());

@@ -38,4 +38,87 @@
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
     </style>
+
+    <!-- AMOLED Black Theme (Night configuration) -->
+    <style name="Theme.NextGenMessages.Amoled" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/md_theme_dark_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_dark_primaryContainer</item>
+        <item name="colorOnPrimaryContainer">@color/md_theme_dark_onPrimaryContainer</item>
+
+        <item name="colorSecondary">@color/md_theme_dark_secondary</item>
+        <item name="colorOnSecondary">@color/md_theme_dark_onSecondary</item>
+        <item name="colorSecondaryContainer">@color/md_theme_dark_secondaryContainer</item>
+        <item name="colorOnSecondaryContainer">@color/md_theme_dark_onSecondaryContainer</item>
+
+        <item name="colorTertiary">@color/md_theme_dark_tertiary</item>
+        <item name="colorOnTertiary">@color/md_theme_dark_onTertiary</item>
+        <item name="colorTertiaryContainer">@color/md_theme_dark_tertiaryContainer</item>
+        <item name="colorOnTertiaryContainer">@color/md_theme_dark_onTertiaryContainer</item>
+
+        <item name="colorError">@color/md_theme_dark_error</item>
+        <item name="colorOnError">@color/md_theme_dark_onError</item>
+        <item name="colorErrorContainer">@color/md_theme_dark_errorContainer</item>
+        <item name="colorOnErrorContainer">@color/md_theme_dark_onErrorContainer</item>
+
+        <item name="android:colorBackground">@color/amoled_background</item>
+        <item name="colorOnBackground">#FFFFFF</item>
+        <item name="colorSurface">@color/amoled_surface</item>
+        <item name="colorOnSurface">#E1E2E8</item>
+        <item name="colorSurfaceVariant">@color/amoled_surface_variant</item>
+        <item name="colorOnSurfaceVariant">#C2C7CF</item>
+        <item name="colorOutline">@color/amoled_outline</item>
+        <item name="colorOutlineVariant">@color/amoled_outline_variant</item>
+
+        <item name="android:statusBarColor">@color/amoled_background</item>
+        <item name="android:navigationBarColor">@color/amoled_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <!-- Base Accent Theme Overlay -->
+    <style name="ThemeOverlay.NextGen.Accent" parent="" />
+
+    <!-- Dark Accent Theme Overlays -->
+    <style name="ThemeOverlay.NextGen.Accent.Purple">
+        <item name="colorPrimary">@color/accent_purple_dark_primary</item>
+        <item name="colorOnPrimary">@color/accent_purple_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/accent_purple_dark_container</item>
+        <item name="colorOnPrimaryContainer">@color/accent_purple_dark_onContainer</item>
+    </style>
+
+    <style name="ThemeOverlay.NextGen.Accent.Green">
+        <item name="colorPrimary">@color/accent_green_dark_primary</item>
+        <item name="colorOnPrimary">@color/accent_green_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/accent_green_dark_container</item>
+        <item name="colorOnPrimaryContainer">@color/accent_green_dark_onContainer</item>
+    </style>
+
+    <style name="ThemeOverlay.NextGen.Accent.Teal">
+        <item name="colorPrimary">@color/accent_teal_dark_primary</item>
+        <item name="colorOnPrimary">@color/accent_teal_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/accent_teal_dark_container</item>
+        <item name="colorOnPrimaryContainer">@color/accent_teal_dark_onContainer</item>
+    </style>
+
+    <style name="ThemeOverlay.NextGen.Accent.Orange">
+        <item name="colorPrimary">@color/accent_orange_dark_primary</item>
+        <item name="colorOnPrimary">@color/accent_orange_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/accent_orange_dark_container</item>
+        <item name="colorOnPrimaryContainer">@color/accent_orange_dark_onContainer</item>
+    </style>
+
+    <style name="ThemeOverlay.NextGen.Accent.Red">
+        <item name="colorPrimary">@color/accent_red_dark_primary</item>
+        <item name="colorOnPrimary">@color/accent_red_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/accent_red_dark_container</item>
+        <item name="colorOnPrimaryContainer">@color/accent_red_dark_onContainer</item>
+    </style>
+
+    <style name="ThemeOverlay.NextGen.Accent.Pink">
+        <item name="colorPrimary">@color/accent_pink_dark_primary</item>
+        <item name="colorOnPrimary">@color/accent_pink_dark_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/accent_pink_dark_container</item>
+        <item name="colorOnPrimaryContainer">@color/accent_pink_dark_onContainer</item>
+    </style>
 </resources>

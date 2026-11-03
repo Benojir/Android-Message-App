@@ -71,9 +71,9 @@
 
     <!-- Settings Screen: Appearance & General -->
     <string name="settings_title">Settings</string>
-    <string name="settings_section_appearance">Appearance</string>
-    <string name="settings_theme_title">Theme</string>
-    <string name="settings_theme_summary">Choose your preferred visual style</string>
+    <string name="settings_section_appearance">Appearance &amp; Themes</string>
+    <string name="settings_theme_title">App Theme</string>
+    <string name="settings_theme_summary">Light, Dark, System, or AMOLED Black</string>
     <string name="settings_dynamic_color_title">Material You Dynamic Colors</string>
     <string name="settings_dynamic_color_summary">Harmonize colors with system wallpaper (Android 12+)</string>
     <string name="theme_dialog_title">Select Theme</string>
@@ -452,4 +452,155 @@
     <string name="settings_system_channel_settings_title">Notification Channels &amp; Sounds</string>
     <string name="settings_system_channel_settings_summary">Configure system alert sounds, vibrations, and banners</string>
     <string name="permission_notification_rationale">NextGen Messages needs notification permission to alert you when new text messages arrive.</string>
+
+    <!-- Step 10: Premium UI, Themes, Personalization & Wallpapers -->
+    <string name="theme_amoled">AMOLED Black</string>
+    <string name="action_conversation_wallpaper">Chat wallpaper</string>
+    <string name="dialog_title_wallpaper">Choose Wallpaper</string>
+    <string name="wallpaper_default">Default (System theme)</string>
+    <string name="wallpaper_solid_amoled">Solid AMOLED Black</string>
+    <string name="wallpaper_solid_slate">Solid Slate Dark</string>
+    <string name="wallpaper_solid_light">Solid Soft Light</string>
+    <string name="wallpaper_gradient_twilight">Gradient: Twilight</string>
+    <string name="wallpaper_gradient_dawn">Gradient: Dawn</string>
+    <string name="wallpaper_gradient_forest">Gradient: Forest</string>
+    <string name="wallpaper_gradient_ocean">Gradient: Ocean</string>
+    <string name="wallpaper_custom_image">Choose from Gallery…</string>
+    <string name="wallpaper_cleared_toast">Wallpaper reset to default</string>
+    <string name="wallpaper_applied_toast">Wallpaper applied</string>
+
+    <string name="settings_accent_title">Accent Color</string>
+    <string name="settings_accent_summary">Personalize primary accent palette</string>
+
+    <string name="settings_section_conversations">Chat Customization</string>
+    <string name="settings_bubble_style_title">Message Bubble Style</string>
+    <string name="settings_bubble_style_summary">Modern, Classic, Rounded, or Minimal</string>
+    <string name="settings_bubble_color_title">Bubble Colors</string>
+    <string name="settings_bubble_color_summary">Predefined contrast-safe color palettes</string>
+    <string name="settings_wallpaper_title">Chat Wallpaper</string>
+    <string name="settings_wallpaper_summary">Set global background for all chats</string>
+    <string name="settings_font_size_title">Message Font Size</string>
+    <string name="settings_font_size_summary">Small, Default, Large, or Extra Large</string>
+    <string name="settings_density_title">Chat Density</string>
+    <string name="settings_density_summary">Compact, Comfortable, or Spacious</string>
+
+    <string name="settings_section_inbox">Inbox Layout</string>
+    <string name="settings_inbox_layout_title">Conversation List Spacing</string>
+    <string name="settings_inbox_layout_summary">Comfortable (larger rows) or Compact</string>
+
+    <string name="font_size_small">Small</string>
+    <string name="font_size_default">Default</string>
+    <string name="font_size_large">Large</string>
+    <string name="font_size_xlarge">Extra Large</string>
+
+    <string name="density_compact">Compact</string>
+    <string name="density_comfortable">Comfortable</string>
+    <string name="density_spacious">Spacious</string>
+
+    <string name="inbox_layout_comfortable">Comfortable (Avatars &amp; Previews)</string>
+    <string name="inbox_layout_compact">Compact (More Rows)</string>
+
+    <!-- Step 11: Privacy, Security, App Lock & Encrypted Backup -->
+    <string name="auth_lock_enter_pin">Enter your 6-digit PIN</string>
+    <string name="auth_lock_rate_limited">Too many failed attempts. Try again in %1$d seconds.</string>
+    <string name="auth_lock_incorrect_pin">Incorrect PIN. Try again.</string>
+    <string name="auth_lock_incorrect_pin_warn">Incorrect PIN. %1$d attempts remaining before delay.</string>
+    <string name="auth_lock_biometric_failed">Biometric not recognized. Please try again or use PIN.</string>
+    <string name="biometric_prompt_title">Unlock NextGen Messages</string>
+    <string name="biometric_prompt_subtitle">Confirm your fingerprint or face to proceed</string>
+    <string name="biometric_use_pin">Use PIN</string>
+    <string name="btn_exit_app">Exit</string>
+
+    <string name="key_0_desc">0</string>
+    <string name="key_1_desc">1</string>
+    <string name="key_2_desc">2</string>
+    <string name="key_3_desc">3</string>
+    <string name="key_4_desc">4</string>
+    <string name="key_5_desc">5</string>
+    <string name="key_6_desc">6</string>
+    <string name="key_7_desc">7</string>
+    <string name="key_8_desc">8</string>
+    <string name="key_9_desc">9</string>
+    <string name="btn_biometric_desc">Unlock with Biometrics</string>
+    <string name="btn_backspace_desc">Delete PIN digit</string>
+    <string name="a11y_pin_digit_entered">PIN digit %1$d of %2$d entered</string>
+    <string name="a11y_pin_digit_deleted">PIN digit removed, %1$d of %2$d remaining</string>
+    <string name="a11y_pin_cleared">PIN cleared</string>
+
+    <string name="cd_private_conversation">Private Conversation</string>
+    <string name="private_conversation_snippet_masked">Private Conversation</string>
+    <string name="action_private_conversation">Private Conversation</string>
+    <string name="action_mark_private">Mark as Private</string>
+    <string name="action_remove_private">Remove from Private</string>
+    <string name="dialog_private_conv_title">Mark as Private Conversation</string>
+    <string name="dialog_private_conv_message">This conversation will require authentication to access, hide preview snippets in the inbox, and mask notifications.\n\nNote: Underlying SMS and MMS records remain stored in your device\'s Android Telephony Provider.</string>
+    <string name="dialog_remove_private_title">Remove Private Status</string>
+    <string name="dialog_remove_private_message">Remove private protection from this conversation? Its preview snippet will be visible in the inbox again.</string>
+    <string name="toast_conversation_marked_private">Conversation marked as private</string>
+    <string name="toast_conversation_unmarked_private">Private protection removed</string>
+    <string name="notification_private_message_received">Private message received</string>
+
+    <string name="settings_section_privacy_security">Privacy &amp; Security</string>
+    <string name="settings_app_lock_title">App Lock</string>
+    <string name="settings_app_lock_summary">Require PIN or biometric authentication to open NextGen Messages</string>
+    <string name="settings_biometric_title">Biometric Unlock</string>
+    <string name="settings_biometric_summary">Use fingerprint or face authentication when supported</string>
+    <string name="settings_change_pin_title">Change App Lock PIN</string>
+    <string name="settings_change_pin_summary">Update your existing 6-digit PIN</string>
+    <string name="settings_auto_lock_title">Auto-Lock Timeout</string>
+    <string name="settings_auto_lock_summary">Configure when the app automatically locks</string>
+    <string name="auto_lock_immediately">Immediately when closed</string>
+    <string name="auto_lock_30_sec">After 30 seconds in background</string>
+    <string name="auto_lock_1_min">After 1 minute in background</string>
+    <string name="auto_lock_5_min">After 5 minutes in background</string>
+    <string name="auto_lock_15_min">After 15 minutes in background</string>
+
+    <string name="settings_screenshot_protection_title">Recents &amp; Screenshot Privacy</string>
+    <string name="settings_screenshot_protection_summary">Prevent sensitive content and thumbnails in Android recent apps</string>
+    <string name="screenshot_disabled">Disabled (Previews and screenshots allowed)</string>
+    <string name="screenshot_private_only">Private Chats &amp; Auth (Recommended)</string>
+    <string name="screenshot_all">All Screens (Block all screenshots &amp; previews)</string>
+
+    <string name="settings_private_chats_title">Private Conversations</string>
+    <string name="settings_private_chats_summary">%1$d conversation(s) protected</string>
+    <string name="settings_backup_title_s11">Create Encrypted Backup</string>
+    <string name="settings_backup_summary_s11">Export SMS, MMS, attachments, and settings to an encrypted archive</string>
+    <string name="settings_restore_title_s11">Restore from Encrypted Backup</string>
+    <string name="settings_restore_summary_s11">Import and merge SMS, MMS, and settings from a backup file</string>
+    <string name="settings_security_info_title">Security &amp; Privacy Architecture</string>
+    <string name="settings_security_info_summary">Learn how NextGen Messages protects your data on-device</string>
+
+    <string name="dialog_pin_setup_title">Set Up App Lock PIN</string>
+    <string name="dialog_pin_setup_enter">Enter a 6-digit PIN</string>
+    <string name="dialog_pin_setup_confirm">Confirm your 6-digit PIN</string>
+    <string name="dialog_pin_mismatch">PINs do not match. Please try again.</string>
+    <string name="dialog_pin_invalid">PIN must be exactly 6 digits.</string>
+    <string name="dialog_pin_success">App Lock enabled successfully</string>
+    <string name="dialog_pin_disable_confirm">Enter your current PIN to disable App Lock</string>
+    <string name="dialog_pin_disabled_toast">App Lock disabled</string>
+    <string name="dialog_pin_changed_toast">PIN changed successfully</string>
+    <string name="dialog_change_pin_current">Enter current PIN</string>
+    <string name="dialog_change_pin_new">Enter new 6-digit PIN</string>
+
+    <string name="dialog_backup_title">Create Encrypted Backup</string>
+    <string name="dialog_backup_password_prompt">Enter a strong backup password (min 8 characters):</string>
+    <string name="dialog_backup_password_confirm_prompt">Confirm backup password:</string>
+    <string name="dialog_backup_password_hint">Password (min 8 characters)</string>
+    <string name="dialog_backup_password_confirm_hint">Confirm Password</string>
+    <string name="dialog_backup_disclaimer">IMPORTANT: Portable backups use AES-256-GCM encryption. Losing this password means the backup cannot be recovered by anyone.</string>
+    <string name="dialog_backup_start">Create Backup</string>
+    <string name="toast_backup_in_progress">Creating encrypted backup…</string>
+    <string name="toast_backup_complete">Encrypted backup created successfully!</string>
+    <string name="toast_backup_failed">Backup failed: %1$s</string>
+
+    <string name="dialog_restore_title">Restore from Encrypted Backup</string>
+    <string name="dialog_restore_password_prompt">Enter the backup password to decrypt:</string>
+    <string name="dialog_restore_confirm">Restore (Merge)</string>
+    <string name="dialog_restore_preview_summary">Backup Date: %1$s\nSMS Messages: %2$d\nMMS Messages: %3$d\nAttachments: %4$d\n\nMode: Merge with Existing Messages\n(Duplicates will be safely skipped. No existing messages will be deleted.)</string>
+    <string name="toast_restore_in_progress">Restoring messages…</string>
+    <string name="toast_restore_complete">Restored %1$d SMS, %2$d MMS, and %3$d attachments. (%4$d duplicates skipped)</string>
+    <string name="toast_restore_failed">Restore failed: %1$s</string>
+
+    <string name="security_info_dialog_title">Security &amp; Privacy Architecture</string>
+    <string name="security_info_dialog_content">NextGen Messages is designed with on-device privacy as a fundamental priority:\n\n• App Lock: Uses PBKDF2WithHmacSHA256 with 100,000 iterations and constant-time verification. Rate limiting prevents brute force attacks.\n\n• Biometrics: Leverages standard AndroidX BiometricPrompt.\n\n• Private Conversations: Application-level access control that hides previews and requires authentication. Note: System Telephony Provider rows remain accessible to other default SMS clients or privileged apps.\n\n• Window Privacy: FLAG_SECURE prevents screen recording and thumbnail generation in Recents.\n\n• Encrypted Backups: Authenticated AES-256-GCM encryption with PBKDF2 key derivation. Your backup password is never stored or uploaded.</string>
 </resources>

@@ -80,6 +80,7 @@ public class ComposeActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        com.nextgen.messages.utils.ThemeHelper.applyToActivity(this);
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         super.onCreate(savedInstanceState);
 
